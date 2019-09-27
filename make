@@ -27,10 +27,17 @@ if(!is_readable($app_dir_file)){
     echo "laravel application ".$dbname." exists, now attempting scafolding from database.\n";
 }
 
-//scafold laravel application from existing database
-use Automator\Automate;
-$auto = new Automate();
-$data = $auto->Automate();
+//scafold laravel RESTful API from existing database
+if($argv[1] == "--api"){
+    use Automator\Apimake;
+    $auto = new Automate();
+    $auto->Automate();
+}else if($argv[1] == "--app"){
+    use Automator\Appmake;
+    $auto = new Automate();
+    $auto->Automate();
+}
+
 $duration = microtime(true) - AUTOMATOR_START;
 echo "\nTotal time spent by automator ".$duration."\n";
 exit;
