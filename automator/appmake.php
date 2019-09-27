@@ -4,7 +4,7 @@ namespace Automator;
 use Automator\Support\Inflect;
 use Automator\Support\DbHandlers;
 
-class Automate
+class Appmake
 {
     private $con;
     private $tables = array();

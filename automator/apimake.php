@@ -4,7 +4,7 @@ namespace Automator;
 use Automator\Support\Inflect;
 use Automator\Support\DbHandlers;
 
-class Automate
+class Apimake
 {
     private $con;
     private $tables = array();
@@ -13,7 +13,7 @@ class Automate
         global $dbname;
         $this->con = new DbHandlers();
         $dtables = $this->con->show_dbTables();
-        foreach($dtables as $tb){ 
+        foreach($dtables as $tb){
             $this->tables[] = $tb["Tables_in_".$dbname];
         }
         $this->MakeResources();
@@ -26,7 +26,7 @@ class Automate
             if($tbl === "users") continue;
             $obj = $this->getModel($tbl);
             $artisan_cmd = "php artisan make:model ".$obj["model"]." -cr";
-            
+
             exec("cd $app_dir && $artisan_cmd");
 
             $this->touchModel($obj['model'], $tbl);
@@ -55,7 +55,7 @@ class Automate
             foreach($parts as $part){
                 $obj .= ucwords($part);
             }
-            
+
         }else{
             $obj = ucwords($table);
         }
@@ -82,7 +82,7 @@ class Automate
             }else{
                 $modelstr .= "'".$item."'";
             }
-    
+
             $fite += 1;
         }
         $modelstr .= "];\n\n";
@@ -97,7 +97,7 @@ class Automate
             }else{
                 $modelstr .= "'".$item."'";
             }
-    
+
             $fite += 1;
         }
         $modelstr .= "];\n\n";
@@ -127,7 +127,7 @@ class Automate
         $fields = array();
         $sql = "desc ".$tbl;
         $struct = $this->con->tableDesc($tbl);
-            
+
         foreach($struct as $field){
             if($field["Field"]==="id" || $field["Field"]==="created_at" || $field["Field"]==="updated_at" || $field["Field"]==="status") continue;
             $fields[] = $field["Field"];
@@ -135,15 +135,16 @@ class Automate
         $hfield = ['id','created_at','updated_at','status'];
         return ['fillable'=>$fields, 'hidden'=>$hfield];
     }
-    
+
     private function dorelation($col){
         if(strpos($col, "_id")>-1)
         {
             $mod = str_replace("_id","",$col);
         }else if(strpos($col, "_by")>-1){
-            $mod = str_replace("_by","",$col);
+            //$mod = str_replace("_by","",$col);
+            $mod = "user";
         }
-        
+
         $model = $this->getModel(Inflect::pluralize($mod));
         $this->relations .= "    /**\n     * Get the ".$mod." for this model.\n     *\n     * @return App\\".$model['model']."\n     */\n";
         $this->relations .= '    public function '.$mod."()\n    {\n";

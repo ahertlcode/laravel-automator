@@ -27,14 +27,23 @@ if(!is_readable($app_dir_file)){
     echo "laravel application ".$dbname." exists, now attempting scafolding from database.\n";
 }
 
+if(!is_readable($app_dir_file)){
+    echo "Laravel application not created, check terminal for error.";
+    exit;
+}
+
+use Automator\Apimake;
+use Automator\Appmake;
+//$auto = new Automateapp();
+//$auto->Automate();
+
 //scafold laravel RESTful API from existing database
-if($argv[1] == "--api"){
-    use Automator\Apimake;
-    $auto = new Automate();
+if($argv[1] == "--api")
+{
+    $auto = new Apimake();
     $auto->Automate();
 }else if($argv[1] == "--app"){
-    use Automator\Appmake;
-    $auto = new Automate();
+    $auto = new Appmake();
     $auto->Automate();
 }
 
