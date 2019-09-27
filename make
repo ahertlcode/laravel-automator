@@ -17,7 +17,9 @@ $password = $config['password'];
 require 'autoload.php';
 
 //create laravel application
+//$app_dir = '../../laravel/mawtong';
 $app_dir = '../../laravel/'.$dbname;
+//$app_dir_file = '../../laravel/mawtong/artisan';
 $app_dir_file = '../../laravel/'.$dbname.'/artisan';
 if(!is_readable($app_dir_file)){
     $base_app_dir = '../../laravel';
