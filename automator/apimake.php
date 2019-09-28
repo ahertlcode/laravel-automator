@@ -108,14 +108,15 @@ class Apimake
 
     function touchController($controller, $table){
         global $app_dir;
+        $cols = $this->getFields($table)['fillable'];
         $ctrlstr = explode("class", file_get_contents($app_dir."/app/Http/Controllers/".$controller.".php"))[0];
         $ctrlstr .= "use Auth;\n\n";
         $ctrlstr .= "class ".$controller." extends Controller\n{\n";
         $ctrlstr .= $this->getCurrentUser();
         $ctrlstr .= $this->getIndexFunct($table);
-        $ctrlstr .= $this->getStoreFunct($table);
+        $ctrlstr .= $this->getStoreFunct($table, $cols);
         $ctrlstr .= $this->getShowFunct($table);
-        $ctrlstr .= $this->getUpdateFunct($table);
+        $ctrlstr .= $this->getUpdateFunct($table, $cols);
         $ctrlstr .= $this->getDestroyFunct($table);
         $ctrlstr .= $this->getStub();
         $ctrlstr .= "\n}\n";
@@ -146,11 +147,19 @@ class Apimake
         }
 
         $model = $this->getModel(Inflect::pluralize($mod));
+        if($mod == "user" && $col !== "user_id"){
+            $this->relations .= "    /**\n     * Get the ".$mod." for this model.\n     *\n     * @return App\\".$model['model']."\n     */\n";
+            $this->relations .= '    public function '.$col."()\n    {\n";
+            $this->relations .= '        return $this->belongsTo(';
+            $this->relations .= "'App\\".$model['model']."', '".$col."')->get();\n";
+            $this->relations .= "    }\n\n";
+        }else{
         $this->relations .= "    /**\n     * Get the ".$mod." for this model.\n     *\n     * @return App\\".$model['model']."\n     */\n";
         $this->relations .= '    public function '.$mod."()\n    {\n";
         $this->relations .= '        return $this->belongsTo(';
         $this->relations .= "'App\\".$model['model']."', '".$col."')->get();\n";
         $this->relations .= "    }\n\n";
+        }
     }
 
     private function getCurrentUser(){
@@ -175,12 +184,17 @@ class Apimake
         return $functstr;
     }
 
-    private function getStoreFunct($table){
+    private function getStoreFunct($table, $cols){
         $functstr = "    /**\n     * Store a newly created resource in storage.\n     *\n     ".'* @param  \Illuminate\Http\Request  $request'."\n";
         $functstr .="     * @return \Illuminate\Http\Response\n     */\n";
         $model = $this->getModel($table)['model'];
         $functstr .= '    public function store(Request $request)'."\n    {\n";
         $functstr .= '        if($this->currentUser()){'."\n";
+        foreach($cols as $col){
+            if($col == "created_by"){
+                $functstr .= '            $request->created_by = $this->currentUser()->id;'."\n";
+            }else{}
+        }
         $functstr .= '            '.$model.'::create($request->all());'."\n";
         $functstr .= '            return response()->json(['."\n";
         $functstr .= '                "info"=>"'.ucwords(Inflect::singularize($table)).' successfully created."'."\n";
@@ -208,7 +222,7 @@ class Apimake
         return $functstr;
     }
 
-    private function getUpdateFunct($table){
+    private function getUpdateFunct($table, $cols){
         $model = $this->getModel($table)['model'];
         $param = Inflect::singularize($table);
         $functstr = "    /**\n     * Update the specified resource in storage.\n     *\n";
@@ -217,6 +231,11 @@ class Apimake
         $functstr .= "     * @return \Illuminate\Http\Response\n     */\n";
         $functstr .= "    public function update(Request ".'$request'.", $model ".'$'.$param.")\n    {\n";
         $functstr .= '        if($this->currentUser()){'."\n";
+        foreach($cols as $col){
+            if($col == "modified_by"){
+                $functstr .= '            $request->modified_by = $this->currentUser()->id;'."\n";
+            }else{}
+        }
         $functstr .= '            $'.$param."->update(".'$request'."->all());\n";
         $functstr .= "            return response()->json(['info' => '".ucwords($param)." successfully updated.'], 200);";
         $functstr .= "\n        }else{\n";
