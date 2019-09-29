@@ -176,7 +176,7 @@ class Apimake
         $model = $this->getModel($table)['model'];
         $functstr .= "    public function index()\n    {\n";
         $functstr .= '        if($this->currentUser()){'."\n";
-        $functstr .= '            return '.$model."::where('status', '1');";
+        $functstr .= '            return '.$model."::where('status', 'on');";
         $functstr .= "\n        }else{\n";
         $functstr .= '            return response()->json(["info"=>"You must be logged in."], 403);';
         $functstr .= "\n        }";
