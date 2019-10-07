@@ -17,10 +17,10 @@ $password = $config['password'];
 require 'autoload.php';
 
 //create laravel application
-$app_dir = '../../laravel/varyd';
-//$app_dir = '../../laravel/'.$dbname;
-$app_dir_file = '../../laravel/varyd/artisan';
-//$app_dir_file = '../../laravel/'.$dbname.'/artisan';
+//$app_dir = '../../laravel/varyd';
+$app_dir = '../../laravel/'.$dbname;
+//$app_dir_file = '../../laravel/varyd/artisan';
+$app_dir_file = '../../laravel/'.$dbname.'/artisan';
 if(!is_readable($app_dir_file)){
     $base_app_dir = '../../laravel';
     $laravel_command = "laravel new ".$dbname;
@@ -36,17 +36,27 @@ if(!is_readable($app_dir_file)){
 
 use Automator\Apimake;
 use Automator\Appmake;
-//$auto = new Automateapp();
-//$auto->Automate();
+use Automator\MakeView;
+use Automator\MakeLayout;
 
 //scafold laravel RESTful API from existing database
-if($argv[1] == "--api")
+if(isset($argv[1]) && $argv[1] == "--api")
 {
     $auto = new Apimake();
     $auto->Automate();
-}else if($argv[1] == "--app"){
+}else if(isset($argv[1]) && $argv[1] == "--app"){
     $auto = new Appmake();
     $auto->Automate();
+}else if(isset($argv[1]) && $argv[1] == "--view" && isset($argv[2])){
+    $auto = new MakeView();
+    $auto->Automate($argv[2]);
+}else if(isset($argv[1]) && $argv[1] == "--layout" && isset($argv[2])){
+    $auto = new MakeLayout();
+    $auto->Automate($argv[2]);
+}else{
+    echo "Specify a valid parameter\n --api - for restful API";
+    echo "\n --app - for laravel web app\n --view layout - ";
+    echo "for laravel web application view.";
 }
 
 $duration = microtime(true) - AUTOMATOR_START;
