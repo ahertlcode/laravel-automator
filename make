@@ -24,6 +24,7 @@ $app_dir_file = '../../laravel/'.$dbname.'/artisan';
 if(!is_readable($app_dir_file)){
     $base_app_dir = '../../laravel';
     $laravel_command = "laravel new ".$dbname;
+    exec("mkdir $base_app_dir");
     exec("cd $base_app_dir && $laravel_command");
 }else{
     echo "laravel application ".$dbname." exists, now attempting scafolding from database.\n";
