@@ -109,6 +109,21 @@ class DbHandlers
         }
         $this->conn = null;
     }
+    
+    public function getFkeys($current_table="", $current_column="", $ref_table="", $ref_column="") {
+        $tableQuery = ($current_table != "") ? "AND (table_name='$current_table')" : "";
+        $columnQuery = ($current_column != "") ? "AND column_name IN ($current_column)" : "";
+        $refTableQuery = ($ref_table != "") ? "AND (referenced_table_name='$ref_table')" : "";
+        $refColumnQuery = ($ref_column != "") ? "AND (referenced_column_name='$ref_column')" : "";
+
+        $query = "SELECT table_name, column_name, referenced_table_name, referenced_column_name";
+        $query .= " FROM information_schema.key_column_usage WHERE (referenced_table_name IS NOT NULL)";
+        $query .= " $tableQuery $columnQuery $refTableQuery $refColumnQuery";
+       
+        $fkeys = ($query != "") ? $this->getRowAssoc($query) : "";
+
+        return $fkeys;
+    }
 
     public function tableDesc($tablename)
     {
