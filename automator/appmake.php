@@ -67,7 +67,7 @@ class Appmake
     private function touchModel($model, $table){
         global $app_dir;
         $this->relations = "";
-        $content = file_get_contents($app_dir."/app/".$model.".php");
+        $content = file_get_contents($app_dir."/app/Models/".$model.".php");
         $modelstr = explode("class", $content)[0];
         $modelstr .= "class ".$model." extends Model\n{\n";
         $props = $this->getFields($table);

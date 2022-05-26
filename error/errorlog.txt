@@ -1,0 +1,4 @@
+Error on line 43 in SQLSTATE[HY000] [2002] No such file or directory : 
+ SQLSTATE[HY000] [2002] No such file or directory 
+
+ 

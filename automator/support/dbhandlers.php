@@ -42,7 +42,8 @@ class DbHandlers
         try {
             $this->conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
+            print_r($e);
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
