@@ -24,7 +24,7 @@ $app_dir_file = '../../laravel/'.$dbname.'/artisan';
 if(!is_readable($app_dir_file)){
     $base_app_dir = '../../laravel';
     $laravel_command = "laravel new ".$dbname;
-    exec("mkdir $base_app_dir");
+    exec("mkdir ".$base_app_dir);
     exec("cd $base_app_dir && $laravel_command");
 }else{
     echo "laravel application ".$dbname." exists, now attempting scafolding from database.\n";
@@ -39,6 +39,7 @@ use Automator\Apimake;
 use Automator\Appmake;
 use Automator\MakeView;
 use Automator\MakeLayout;
+use Automator\MakeForm;
 
 //scafold laravel RESTful API from existing database
 if(isset($argv[1]) && $argv[1] == "--api")
@@ -54,6 +55,9 @@ if(isset($argv[1]) && $argv[1] == "--api")
 }else if(isset($argv[1]) && $argv[1] == "--layout" && isset($argv[2])){
     $auto = new MakeLayout();
     $auto->Automate($argv[2]);
+}else if(isset($argv[1]) && $argv[1] == "--form" && isset($argv[2])){
+    $auto = new MakeForm();
+    $auto->Automate($argv[2], $config);
 }else{
     echo "Specify a valid parameter\n --api - for restful API";
     echo "\n --app - for laravel web app\n --view layout - ";
