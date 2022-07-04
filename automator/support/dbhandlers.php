@@ -125,7 +125,7 @@ class DbHandlers
         return $fkeys;
     }
 
-    public function getFkeys($current_table="", $current_column="", $ref_table="", $ref_column="") {
+/*    public function getFkeys($current_table="", $current_column="", $ref_table="", $ref_column="") {
         $tableQuery = ($current_table != "") ? "AND (table_name='$current_table')" : "";
         $columnQuery = ($current_column != "") ? "AND column_name IN ($current_column)" : "";
         $refTableQuery = ($ref_table != "") ? "AND (referenced_table_name='$ref_table')" : "";
@@ -139,7 +139,7 @@ class DbHandlers
 
         return $fkeys;
     }
-
+*/
     public function tableDesc($tablename)
     {
         return $this->desc_table($tablename);
