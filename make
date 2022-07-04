@@ -39,6 +39,7 @@ use Automator\Apimake;
 use Automator\Appmake;
 use Automator\MakeView;
 use Automator\MakeLayout;
+use Automator\Testmake;
 use Automator\MakeForm;
 
 //scafold laravel RESTful API from existing database
@@ -54,6 +55,9 @@ if(isset($argv[1]) && $argv[1] == "--api")
     $auto->Automate($argv[2]);
 }else if(isset($argv[1]) && $argv[1] == "--layout" && isset($argv[2])){
     $auto = new MakeLayout();
+    $auto->Automate($argv[2]);
+}elseif(isset($argv[1]) && $argv[1] == "--test" && isset($argv[2])) {
+    $auto = new Testmake();
     $auto->Automate($argv[2]);
 }else if(isset($argv[1]) && $argv[1] == "--form" && isset($argv[2])){
     $auto = new MakeForm();

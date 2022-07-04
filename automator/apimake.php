@@ -67,7 +67,7 @@ class Apimake
     private function touchModel($model, $table){
         global $app_dir;
         $this->relations = "";
-        $content = file_get_contents($app_dir."/app/".$model.".php");
+        $content = file_get_contents($app_dir."/app/Models/".$model.".php");
         $modelstr = explode("class", $content)[0];
 
         // $foreignKeys = $this->con->getFkeys($table);
@@ -107,7 +107,7 @@ class Apimake
         $modelstr .= "];\n\n";
         $modelstr .= $this->relations;
         $modelstr .= "\n}";
-        file_put_contents($app_dir."/app/".$model.".php", $modelstr);
+        file_put_contents($app_dir."/app/Models/".$model.".php", $modelstr);
     }
 
     function touchController($controller, $table){
