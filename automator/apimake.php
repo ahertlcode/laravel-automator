@@ -69,6 +69,10 @@ class Apimake
         $this->relations = "";
         $content = file_get_contents($app_dir."/app/Models/".$model.".php");
         $modelstr = explode("class", $content)[0];
+
+        // $foreignKeys = $this->con->getFkeys($table);
+        // print_r($foreignKeys);
+        
         $modelstr .= "class ".$model." extends Model\n{\n";
         $props = $this->getFields($table);
         $modelstr .= "    /**\n     *\n     * Mass assignable columns\n     *\n     */\n";
@@ -138,6 +142,7 @@ class Apimake
     }
 
     private function dorelation($col){
+
         if(strpos($col, "_id")>-1)
         {
             $mod = str_replace("_id","",$col);

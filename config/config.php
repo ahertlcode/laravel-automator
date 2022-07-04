@@ -7,8 +7,6 @@
         "password" => "Tope1234$",
         "database" => "primalfit_solutions",
         "database_type" => "mysql",
-        /*"user" => "test_user",
-        "password" => "test12345",
-        "database" => "test_db",
-        "database_type" => "mysql",*/
+        "excludeTables" => ['migrations'],
+        "excludeColumns" => ['id','createdAt','created_at','updatedAt','updated_at','deletedAt','deleted_at']
     ];
