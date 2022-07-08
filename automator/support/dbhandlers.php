@@ -60,7 +60,7 @@ class DbHandlers
                 $stmt = $this->conn->prepare($in_query);
                 $this->Qres = $stmt->execute();
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();

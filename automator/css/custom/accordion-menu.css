@@ -1,0 +1,66 @@
+a {
+    text-decoration: none !important;
+}
+
+ul,
+li {
+    list-style-type: none;
+}
+
+ul.navbar {
+    display: block;
+    font-family: "Raleway";
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    min-height: 200px;
+    width: 100%;
+    background: rgba(15, 15, 15, 0.61);
+}
+
+ul.navbar li {
+    display: block;
+    float: left;
+    width: 100%;
+    padding: 10px;
+}
+
+ul.navbar li a {
+    text-decoration: none;
+    font-size: 120%;
+    text-align: left;
+}
+
+ul.navbar li ul {
+    display: none;
+}
+
+ul.navbar li ul li {
+    float: left;
+    width: 100%;
+    height: auto;
+    padding: 2px 5px 2px 5px;
+    margin: 0 0 0 0;
+    font-size: 90%;
+}
+
+ul.navbar li ul li:hover {
+    background: #666;
+    padding: 5px 0px 5px 0px;
+    /*trbl*/
+}
+
+ul.navbar li:hover {
+    background: #bbb;
+}
+
+ul.navbar li:hover>ul {
+    position: relative !important;
+    display: block;
+    float: left;
+    width: 100%;
+    z-index: 9;
+    margin-left: -10px;
+    background: #999;
+    padding: 0;
+}

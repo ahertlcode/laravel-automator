@@ -16,3 +16,4 @@
     }
 
     $autoloader = new ClassAutoloader();
+?>
