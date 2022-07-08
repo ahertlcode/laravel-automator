@@ -40,56 +40,73 @@ class Bulma {
         return $lheaders;
     }
 
+    private static function getscripts($tbi){
+        $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/angular.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery-ui.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.datepick.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.table2excel.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.uploadfile.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/utility.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/autocomplete.js"></script>';
+        return $html_body;
+    }
+
     private static function makeLandingPage($tables) {
         global $dbname;
         global $app_dir;
         $lheaders = self::headerFile();
         $lbodyo = "\r\n    ".' <body>'."\r\n";
-        $lbodyo .= '            <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
-        $lbodyo .= '                <div class="navbar-brand">'."\n";
-        $lbodyo .= '                    <a class="navbar-item" href="/">'."\n";
-        $lbodyo .= '                        <h3>'.ucfirst($dbname).'</h3>'."\n";
-        $lbodyo .= '                     </a>'."\n";
-        $lbodyo .= '                     <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">'."\n";
-        $lbodyo .= '                        <span aria-hidden="true"></span>'."\n";
-        $lbodyo .= '                        <span aria-hidden="true"></span>'."\n";
-        $lbodyo .= '                        <span aria-hidden="true"></span>'."\n";
-        $lbodyo .= '                     </a>'."\n";
-        $lbodyo .= '                </div>'."\n";
-        $lbodyo .= '                <div class="navbar-menu">'."\n";
-        $lbodyo .= '                    <div class="navbar-end">'."\n";   
-        $lbodyo .= '                        <div class="navbar-item">'."\n";
-        $lbodyo .= '                            <div class="buttons">'."\n";
-        $lbodyo .= '                                <a class="button is-primary">'."\n";
-        $lbodyo .= '                                    <strong>Sign up</strong>'."\n";
-        $lbodyo .= '                                </a>'."\n";
-        $lbodyo .= '                                <a class="button is-light">'."\n";
-        $lbodyo .= '                                    Log in'."\n";
-        $lbodyo .= '                                </a>'."\n";
-        $lbodyo .= '                            </div>'."\n";
-        $lbodyo .= '                        </div>'."\n";
+        $lbodyo .= '           <div class="container">'."\n";
+        $lbodyo .= '               <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
+        $lbodyo .= '                   <div class="navbar-brand">'."\n";
+        $lbodyo .= '                       <a class="navbar-item" href="/">'."\n";
+        $lbodyo .= '                           <h3>'.ucfirst($dbname).'</h3>'."\n";
+        $lbodyo .= '                       </a>'."\n";
+        $lbodyo .= '                       <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">'."\n";
+        $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
+        $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
+        $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
+        $lbodyo .= '                       </a>'."\n";
+        $lbodyo .= '                   </div>'."\n";
+        $lbodyo .= '                   <div class="navbar-menu">'."\n";
+        $lbodyo .= '                       <div class="navbar-end">'."\n";   
+        $lbodyo .= '                           <div class="navbar-item">'."\n";
+        $lbodyo .= '                               <div class="buttons">'."\n";
+        $lbodyo .= '                                   <a class="button is-primary">'."\n";
+        $lbodyo .= '                                       <strong>Sign up</strong>'."\n";
+        $lbodyo .= '                                   </a>'."\n";
+        $lbodyo .= '                                   <a class="button is-light">'."\n";
+        $lbodyo .= '                                       Log in'."\n";
+        $lbodyo .= '                                   </a>'."\n";
+        $lbodyo .= '                               </div>'."\n";
+        $lbodyo .= '                           </div>'."\n";
+        $lbodyo .= '                       </div>'."\n";
+        $lbodyo .= '                   </div>'."\n";
+        $lbodyo .= '               </nav>'."\n";
+        $lbodyo .= '               <section class="main-content columns is-fullheight">'."\n";
+        $lbodyo .= '                   <aside class="column is-2 is-narrow-mobile is-fullheight section is-hidden-mobile">'."\n";
+        $lbodyo .= '                       <p class="menu-label is-hidden-touch">Navigation</p>'."\n";
+        $lbodyo .= '                       <ul class="menu-list">'."\n";
+        foreach ($tables as $tbl) {
+            $lbodyo .= '                       <li>'."\n";
+            $lbodyo .= '                           <a href="#">'."\n";
+            $lbodyo .= '                               '.$tbl.'    '."\n";
+            $lbodyo .= '                           </a>'."\n";
+            $lbodyo .= '                       </li>'."\n";
+        }
+        $lbodyo .= '                       </ul>'."\n";
+        $lbodyo .= '                </aside>'."\n";
+        $lbodyo .= '                <div class="container column is-10">'."\n";
+        $lbodyo .= '                    <div class="section">'."\n";
         $lbodyo .= '                    </div>'."\n";
         $lbodyo .= '                </div>'."\n";
-        $lbodyo .= '            </nav>'."\n";
-        $lbodyo .= '            <section class="main-content columns is-fullheight">'."\n";
-        $lbodyo .= '                <aside class="column is-2 is-narrow-mobile is-fullheight section is-hidden-mobile">'."\n";
-        $lbodyo .= '                    <p class="menu-label is-hidden-touch">Navigation</p>'."\n";
-        $lbodyo .= '                    <ul class="menu-list">'."\n";
-        foreach ($tables as $tbl) {
-            $lbodyo .= '                    <li>'."\n";
-            $lbodyo .= '                        <a href="#">'."\n";
-            $lbodyo .= '                            '.$tbl.'    '."\n";
-            $lbodyo .= '                        </a>'."\n";
-            $lbodyo .= '                    </li>'."\n";
-        }
-        $lbodyo .= '                </ul>'."\n";
-        $lbodyo .= '            </aside>'."\n";
-        $lbodyo .= '            <div class="container column is-10">'."\n";
-        $lbodyo .= '                <div class="section">'."\n";
-        $lbodyo .= '                </div>'."\n";
-        $lbodyo .= '            </div>'."\n";
-        $lbodyo .= '        </section>'."\n";
-        $lbody = $lheaders.$lbodyo;
+        $lbodyo .= '            </section>'."\n";
+        $lbodyo .= '        </div>'."\n";
+        $lscripts = self::getscripts($tables);
+        $lfooter = "\n\n".'   </body>'."\n";
+        $lfooter .= '</html>'."\n";
+        $lbody = $lheaders.$lbodyo.$lscripts.$lfooter;
         $file_dir = $app_dir."/resources/views/";
         $views_file = $app_dir."/resources/views/index.html";
         if(is_readable($views_file)){
@@ -201,15 +218,7 @@ class Bulma {
         global $dbname;
         global $app_dir;
         $filename = Inflect::singularize($table);
-        $form_str = '<!DOCTYPE html>'."\n";
-        $form_str .= '<html lang="en">'."\n";
-        $form_str .= '  <head>'."\n";
-        $form_str .= '      <title> create'.$table.'</title>'."\n";
-        $form_str .= '      <meta charset="UTF-8">'."\n";
-        $form_str .= '      <meta name="viewport" content="width=device-width, initial-scale=1">'."\n";
-        $form_str .= '  </head>'."\n";
-        $form_str .= '  <body>'."\n";
-        $form_str .= '    <form class="form container" method="POST" enctype="multipart/form-data">'."\n";
+        $form_str = '    <form class="form container" method="POST" enctype="multipart/form-data">'."\n";
         $form_str .= '      <h1 class="title is-3">EDIT '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
         foreach($fields as $field){
             $req = false;
@@ -227,8 +236,6 @@ class Bulma {
         }
         $form_str .= self::getButtonGrp($table);
         $form_str .= "      </form>"."\n";
-        $form_str .= '  </body>'."\n";
-        $form_str .= '</html>'."\n";
         $file_dir = $app_dir."/resources/views/$table";
         $views_file = $app_dir."/resources/views/$table/edit.".ucfirst($table).".html";
         if(is_readable($views_file)){
