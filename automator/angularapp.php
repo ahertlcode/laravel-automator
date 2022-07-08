@@ -128,14 +128,14 @@ class AngularApp {
 
     private static function get_js_main_view($tbs) {
         $tb = Inflect::singularize($tbs);
-        $mainstr  ='        $http({'."\r\n";
-        $mainstr .='            url: base_api_url+"/'.$tbs.'",'."\r\n";
-        $mainstr .='            method: "GET",'."\r\n";
-        $mainstr .='        }).then((result) =>{'."\r\n";
-        $mainstr .='            $scope.'.$tbs.' = result.message;'."\r\n";
-        $mainstr .='        }, function(error){'."\r\n";
-        $mainstr .='            $scope.error = error.statusText;'."\r\n";
-        $mainstr .='        });'."\r\n\r\n";
+        $mainstr  ='    $http({'."\r\n";
+        $mainstr .='        url: base_api_url+"/'.$tbs.'",'."\r\n";
+        $mainstr .='        method: "GET",'."\r\n";
+        $mainstr .='    }).then((result) =>{'."\r\n";
+        $mainstr .='        $scope.'.$tbs.' = result.message;'."\r\n";
+        $mainstr .='    }, function(error){'."\r\n";
+        $mainstr .='        $scope.error = error.statusText;'."\r\n";
+        $mainstr .='    });'."\r\n\r\n";
         return $mainstr;
     }
 

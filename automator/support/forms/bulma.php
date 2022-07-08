@@ -26,7 +26,7 @@ class Bulma {
     private static function headerFile() {
         global $dbname;
         $lheaders = "<!DOCTYPE html>\r\n".'  <html lang="en">'."\r\n";
-        $lheaders .= "    <head>\r\n      <title>$dbname &reg;::Portal</title>\r\n";
+        $lheaders .= "    <head>\r\n      <title>".ucfirst($dbname)."&reg;::Portal</title>\r\n";
         $lheaders .= '        <meta content="text/html" charset="utf-8" >'."\r\n";
         $lheaders .= '        <meta name="viewport" content="width=device-width, initial-scale=1">'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="../../assets/css/bulma.min.css">'."\r\n";
@@ -48,7 +48,7 @@ class Bulma {
         $lbodyo .= '            <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
         $lbodyo .= '                <div class="navbar-brand">'."\n";
         $lbodyo .= '                    <a class="navbar-item" href="/">'."\n";
-        $lbodyo .= '                        <h3>'.$dbname.'</h3>'."\n";
+        $lbodyo .= '                        <h3>'.ucfirst($dbname).'</h3>'."\n";
         $lbodyo .= '                     </a>'."\n";
         $lbodyo .= '                     <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">'."\n";
         $lbodyo .= '                        <span aria-hidden="true"></span>'."\n";
@@ -82,7 +82,7 @@ class Bulma {
             $lbodyo .= '                        </a>'."\n";
             $lbodyo .= '                    </li>'."\n";
         }
-        $lbodyo .= '                </ul>';
+        $lbodyo .= '                </ul>'."\n";
         $lbodyo .= '            </aside>'."\n";
         $lbodyo .= '            <div class="container column is-10">'."\n";
         $lbodyo .= '                <div class="section">'."\n";
