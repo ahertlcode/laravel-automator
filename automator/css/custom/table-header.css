@@ -1,0 +1,22 @@
+table thead tr th{
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bolder;
+    font-size:70%;
+    font-family:Arial, Helvetica, sans-serif;
+}
+table tr td{
+    vertical-align: middle;
+    font-weight: light;
+    font-size:70%;
+    font-family:"Times New Roman", Times, serif;
+}
+table thead tr th{
+    padding:0;
+}
+table tr td{
+    padding:0;
+}
+.table{
+    padding:0;
+}

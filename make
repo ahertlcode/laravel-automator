@@ -12,6 +12,8 @@ $servername = $config['host'];
 $dbname = $config['database'];
 $username = $config['user'];
 $password = $config['password'];
+$exemptedTable = $config['excludeTables'];
+$exemptedColumns = $config['excludeColumns'];
 
 //autoloading class
 require 'autoload.php';
@@ -41,6 +43,7 @@ use Automator\MakeView;
 use Automator\MakeLayout;
 use Automator\Testmake;
 use Automator\MakeForm;
+use Automator\AngularApp;
 
 //scafold laravel RESTful API from existing database
 if(isset($argv[1]) && $argv[1] == "--api")
@@ -61,7 +64,11 @@ if(isset($argv[1]) && $argv[1] == "--api")
     $auto->Automate($argv[2]);
 }else if(isset($argv[1]) && $argv[1] == "--form" && isset($argv[2])){
     $auto = new MakeForm();
-    $auto->Automate($argv[2], $config);
+    $auto->Automate($argv); 
+
+}elseif(isset($argv[1]) && $argv[1] == "--ng" && isset($argv[2])){
+    $auto = new AngularApp();
+    $auto->Automate($argv, $exemptedTable, $exemptedColumns);
 }else{
     echo "Specify a valid parameter\n --api - for restful API";
     echo "\n --app - for laravel web app\n --view layout - ";
