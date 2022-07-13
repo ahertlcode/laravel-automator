@@ -9,9 +9,13 @@ class Apimake
     private $con;
     private $tables = array();
     private $relations;
-    public function Automate(){
+    private $excludeTables;
+    private $excludeColumns;
+    public function Automate($opt=null, $tables=null, $columns=null){
         global $dbname;
         $this->con = new DbHandlers();
+        if ($tables != null) $this->excludeTables = $tables;
+        if ($columns != null) $this->excludeColumns = $columns;
         $dtables = $this->con->show_dbTables();
         foreach($dtables as $tb){
             $this->tables[] = $tb["Tables_in_".$dbname];
@@ -22,28 +26,76 @@ class Apimake
     private function MakeResources(){
         global $app_dir;
         $tables = $this->tables;
-        foreach($tables as $tbl){
-            if($tbl === "users") continue;
+        foreach($tables as $tbl) {
             $obj = $this->getModel($tbl);
-            $artisan_cmd = "php artisan make:model ".$obj["model"]." -cr";
+            
+            if (strtoupper($tbl))
 
-            exec("cd $app_dir && $artisan_cmd");
+            if (strtoupper($tbl) == "USERS" || strtoupper($tbl) == "USER") {
+                $artisan_cmd = "php artisan make:controller ".$obj['controller']." --model=".$obj['model'];
+                exec("cd $app_dir && $artisan_cmd");
+            } else {
+                $artisan_cmd = "php artisan make:model ".$obj["model"]." -cr";
+                exec("cd $app_dir && $artisan_cmd");
+            }
 
             $this->touchModel($obj['model'], $tbl);
             $this->touchController($obj['controller'], $tbl);
-            $this->touchRoute($tbl, $obj['controller']);
         }
+        $this->touchRoute();
+        $this->touchEnv();
+        exec("cd $app_dir && php artisan migrate");
     }
 
-    private function touchRoute($table, $ctrl){
+    private function touchEnv() {
+        echo "touching env file...";
         global $app_dir;
-        $routes = "\n\n/**\n * API endpoints for ".$table."\n * responding to all API calls\n * GET, POST, PUT/PATCH, DELETE\n */\n";
-        $routes .= "Route::apiResource('".$table."', '".$ctrl."');\n";
+        global $config;
+        $envs = explode("\n", \file_get_contents($app_dir."/.env"));
+        $envStr = "";
+        foreach($envs as $env) {
+            $pair = explode("=", $env);
+            if ($pair[0]=="DB_USERNAME") $envStr .= str_replace($pair[1], $config['user'], $env)."\n";
+            elseif ($pair[0]=="DB_PASSWORD") $envStr .= str_replace("DB_PASSWORD=", "DB_PASSWORD=".$config['password'], $env)."\n";
+            else $envStr .= $env."\n";
+        }
+        if (!empty($envStr)) \file_put_contents($app_dir."/.env", $envStr);
+    }
+
+    private function touchRoute(){
+        global $app_dir;
+        $routes = '<?php'."\r\n\r\n".'use Illuminate\Http\Request;'."\r\n";
+        $routes .= 'use Illuminate\Support\Facades\Route;'."\r\n";
+        $routes .= 'use App\Http\Controllers\AuthController;'."\r\n";
+        $routes .= <<<END
+        /*
+        |--------------------------------------------------------------------------
+        | API Routes
+        |--------------------------------------------------------------------------
+        |
+        | Here is where you can register API routes for your application. These
+        | routes are loaded by the RouteServiceProvider within a group which
+        | is assigned the "api" middleware group. Enjoy building your API!
+        |
+        */
+        END;
+        $routes .= "\r\n".'Route::post(\'/auth/register\', [AuthController::class, \'register\']);'."\r\n";
+        $routes .= 'Route::post(\'/auth/login\', [AuthController::class, \'login\']);'."\r\n";
+
+        $routes .= 'Route::group([\'middleware\' => [\'auth:sanctum\']], function() {'."\r\n";
+        $routes .= '    Route::get(\'/user\', function(Request $request) {'."\r\n";
+        $routes .= '        return auth()->user();'."\r\n".'    });'."\r\n\r\n";
+
+        $routes .= '    Route::post(\'/auth/logout\', [AuthController::class, \'logout\']);'."\r\n";
+
+        foreach($this->tables as $table) {
+            $ctrl = $this->getModel($table)['controller'];
+            $routes .= "\n\n    /**\n     * API endpoints for ".$table."\n     * responding to all API calls\n     * GET, POST, PUT/PATCH, DELETE\n     */\n";
+            $routes .= "    Route::apiResource('".$table."', '\App\Http\Controllers\\".$ctrl."');\n";
+        }
+        $routes .= "\r\n".'});'."\r\n";
         $api_route_file = $app_dir."/routes/api.php";
-        //echo "Initial filesize before writing ".file_size($api_route_file)."\n";
-        $fp = fopen($api_route_file, "a+");
-        fwrite($fp, $routes);
-        //echo "Filesize after writing routes ".file_size($api_route_file)."\n";
+        \file_put_contents($api_route_file, $routes);
     }
 
     private function getModel($tbl){
@@ -68,43 +120,41 @@ class Apimake
         global $app_dir;
         $this->relations = "";
         $content = file_get_contents($app_dir."/app/Models/".$model.".php");
-        $modelstr = explode("class", $content)[0];
-
-        // $foreignKeys = $this->con->getFkeys($table);
-        // print_r($foreignKeys);
-        
-        $modelstr .= "class ".$model." extends Model\n{\n";
+        $modelstr = trim(str_replace('use Auth;','', explode("class", $content)[0]));
+        if (!strpos($modelstr, 'use Auth;') && $model != 'User') $modelstr .= "\r\n".'use Auth;'."\r\n"; 
         $props = $this->getFields($table);
+        $modelstr .= "\r\n\r\n\r\n";
+        if ($model != 'User') $modelstr .= "class ".$model." extends Model\n{\n";
+        if ($model == 'User')  $modelstr .= "class ".$model." extends Authenticatable\n{\n    use HasApiTokens;\n";
+        $modelstr .= '    protected $table="'.$table.'";'."\r\n";
+        foreach($this->con->tableDesc($table) as $field) {
+            if ($field['Key'] == 'PRI') $modelstr .= '    protected $primaryKey="'.$field['Field'].'";'."\r\n";
+        }
         $modelstr .= "    /**\n     *\n     * Mass assignable columns\n     *\n     */\n";
         $modelstr .= '    protected $fillable = [';
         $fite = 0;
-        foreach($props['fillable'] as $item){
-            if(strpos($item, "_id")>-1 || strpos($item, "_by")>-1) $this->dorelation($item);
-            if($item == "") continue;
+        foreach($props['fillable'] as $fillable) {
+            if($fite < sizeof($props['fillable'])-1){
+                $modelstr .= "'".$fillable."',";
+            }else{
+                $modelstr .= "'".$fillable."'";
+            }
+            $fite += 1;
+        }
+        $modelstr .= "];\r\n\r\n";
+
+        $modelstr .= "    /**\n     *\n     * Hidden columns not to be returned in query result.\n     *\n     */\n";
+        $modelstr .= '    protected $hidden = [';
+        $fite = 0;
+        foreach($props['hidden'] as $item){
             if($fite < sizeof($props['fillable'])-1){
                 $modelstr .= "'".$item."',";
             }else{
                 $modelstr .= "'".$item."'";
             }
-
-            $fite += 1;
         }
-        $modelstr .= "];\n\n";
-        $modelstr .= "    /**\n     *\n     * Hidden columns not to be returned in query result.\n     *\n     */\n";
-        $modelstr .= '    protected $hidden = [';
-        $fite = 0;
-        foreach($props['hidden'] as $item){
-            if(strpos($item, "_id")>-1 || strpos($item, "_by")>-1) $this->dorelation($item);
-            if($item == "") continue;
-            if($fite < sizeof($props['hidden'])-1){
-                $modelstr .= "'".$item."',";
-            }else{
-                $modelstr .= "'".$item."'";
-            }
-
-            $fite += 1;
-        }
-        $modelstr .= "];\n\n";
+        $modelstr .= "];\r\n\r\n";
+        $this->dorelation($props['foreignKey']);
         $modelstr .= $this->relations;
         $modelstr .= "\n}";
         file_put_contents($app_dir."/app/Models/".$model.".php", $modelstr);
@@ -112,11 +162,18 @@ class Apimake
 
     function touchController($controller, $table){
         global $app_dir;
-        $cols = $this->getFields($table)['fillable'];
+        $props = $this->getFields($table);
+        $cols = $props['fillable'];
         $ctrlstr = explode("class", file_get_contents($app_dir."/app/Http/Controllers/".$controller.".php"))[0];
-        $ctrlstr .= "use Auth;\n\n";
+        foreach($props['foreignKey'] as $fkey) {
+            $insertmodel = 'use App\Models\\'.$this->getModel($fkey['REFERENCED_TABLE_NAME'])['model'].';';
+            if (!strpos($ctrlstr, $insertmodel)) $ctrlstr .= $insertmodel."\r\n";
+        }
+        if (!strpos($ctrlstr, 'use App\Traits\ApiResponser;')) $ctrlstr .= 'use App\Traits\ApiResponser;'."\r\n";
+        if (!strpos($ctrlstr, 'use Auth;')) $ctrlstr .= "use Auth;\n\n";
         $ctrlstr .= "class ".$controller." extends Controller\n{\n";
-        $ctrlstr .= $this->getCurrentUser();
+        if (!strpos($ctrlstr, 'use ApiResponser;')) $ctrlstr .= '    use ApiResponser;'."\r\n";
+        //$ctrlstr .= $this->getCurrentUser();
         $ctrlstr .= $this->getIndexFunct($table);
         $ctrlstr .= $this->getStoreFunct($table, $cols);
         $ctrlstr .= $this->getShowFunct($table);
@@ -125,45 +182,34 @@ class Apimake
         $ctrlstr .= $this->getStub();
         $ctrlstr .= "\n}\n";
         file_put_contents($app_dir."/app/Http/Controllers/".$controller.".php", $ctrlstr);
+        exec('cp Controller/AuthController.php '.$app_dir."/app/Http/Controllers");
+        exec('cp -r Traits '.$app_dir."/app");
     }
 
     private function getFields($tbl){
         $struct = array();
         $fields = array();
+        $hfield = array();
         $sql = "desc ".$tbl;
         $struct = $this->con->tableDesc($tbl);
-
+        $fkeys = $this->con->getFkeys($tbl);
         foreach($struct as $field){
-            if($field["Field"]==="id" || $field["Field"]==="created_at" || $field["Field"]==="updated_at" || $field["Field"]==="status") continue;
-            $fields[] = $field["Field"];
+            if (!in_array($field['Field'], $this->excludeColumns) && $field['Field'] != 'password') $fields[] = $field["Field"];
+            if (in_array($field['Field'], $this->excludeColumns)) $hfield[] = $field['Field'];
         }
-        $hfield = ['id','created_at','updated_at','status'];
-        return ['fillable'=>$fields, 'hidden'=>$hfield];
+        return ['fillable'=>$fields, 'hidden'=>$hfield, 'foreignKey'=>$fkeys];
     }
 
-    private function dorelation($col){
+    private function dorelation($fkeys){
 
-        if(strpos($col, "_id")>-1)
-        {
-            $mod = str_replace("_id","",$col);
-        }else if(strpos($col, "_by")>-1){
-            //$mod = str_replace("_by","",$col);
-            $mod = "user";
-        }
-
-        $model = $this->getModel(Inflect::pluralize($mod));
-        if($mod == "user" && $col !== "user_id"){
-            $this->relations .= "    /**\n     * Get the ".$mod." for this model.\n     *\n     * @return App\\".$model['model']."\n     */\n";
-            $this->relations .= '    public function '.$col."()\n    {\n";
+        foreach($fkeys as $fkey) {
+            $model = $this->getModel($fkey['REFERENCED_TABLE_NAME'])['model'];
+            $col = $fkey['COLUMN_NAME'];
+            $this->relations .= "    /**\n     * Get the ".$fkey['REFERENCED_TABLE_NAME']." for this model.\n     *\n     * @return App\\".$model."\n     */\n";
+            $this->relations .= '    public function '.$fkey['REFERENCED_TABLE_NAME']."()\n    {\n";
             $this->relations .= '        return $this->belongsTo(';
-            $this->relations .= "'App\\".$model['model']."', '".$col."')->get();\n";
+            $this->relations .= "'App\Models\\".$model."', '".$col."')->get();\n";
             $this->relations .= "    }\n\n";
-        }else{
-        $this->relations .= "    /**\n     * Get the ".$mod." for this model.\n     *\n     * @return App\\".$model['model']."\n     */\n";
-        $this->relations .= '    public function '.$mod."()\n    {\n";
-        $this->relations .= '        return $this->belongsTo(';
-        $this->relations .= "'App\\".$model['model']."', '".$col."')->get();\n";
-        $this->relations .= "    }\n\n";
         }
     }
 
@@ -179,12 +225,19 @@ class Apimake
     private function getIndexFunct($table){
         $functstr = "    /**\n     * Display a listing of the resource.\n     *\n     * @return \Illuminate\Http\Response\n     */\n";
         $model = $this->getModel($table)['model'];
+        $fkeys = $this->getFields($table)['foreignKey'];
         $functstr .= "    public function index()\n    {\n";
-        $functstr .= '        if($this->currentUser()){'."\n";
-        $functstr .= '            return '.$model."::where('status', 'on');";
-        $functstr .= "\n        }else{\n";
-        $functstr .= '            return response()->json(["info"=>"You must be logged in."], 403);';
-        $functstr .= "\n        }";
+        $functstr .= '        $'.$table.'  = '.$model.'::where("user_id", $this->getDataOwner()->id)->get();'."\r\n";
+        if (count($fkeys)>0) {
+            $functstr .= '        $pointer = 0;'."\r\n";
+            $functstr .= '        foreach($'.$table.' as $'.Inflect::singularize($table).') {'."\n";
+            foreach($fkeys as $fkey) {
+                $functstr .= '            $'.$table.'[$pointer]["'.Inflect::singularize($fkey["REFERENCED_TABLE_NAME"]).'"] = $'.Inflect::singularize($table).'->'.$fkey['REFERENCED_TABLE_NAME'].'();'."\n";
+            }
+            $functstr.= '            $pointer++;'."\r\n";
+            $functstr .= '        }'."\n";
+        }
+        $functstr .= '        return $this->success($'.$table.', "'.ucfirst($table).' retrieved!", 200);'."\r\n";
         $functstr .= "\n    }\n\n";
         return $functstr;
     }
@@ -194,19 +247,28 @@ class Apimake
         $functstr .="     * @return \Illuminate\Http\Response\n     */\n";
         $model = $this->getModel($table)['model'];
         $functstr .= '    public function store(Request $request)'."\n    {\n";
-        $functstr .= '        if($this->currentUser()){'."\n";
-        foreach($cols as $col){
-            if($col == "created_by"){
-                $functstr .= '            $request->created_by = $this->currentUser()->id;'."\n";
-            }else{}
+        $functstr .= '        $request->request->add(["user_id"=>$this->getDataOwner()->id]);'."\r\n\r\n";
+        $fields = $this->getFields($table)['fillable'];
+        $functstr .= '        $request->validate(['."\r\n";
+        foreach($fields as $field) {
+            $functstr .= '            \''.$field.'\' => \'required\','."\r\n";
         }
-        $functstr .= '            '.$model.'::create($request->all());'."\n";
-        $functstr .= '            return response()->json(['."\n";
-        $functstr .= '                "info"=>"'.ucwords(Inflect::singularize($table)).' successfully created."'."\n";
-        $functstr .= '            ], 201);';
-        $functstr .= "\n        }else{\n";
-        $functstr .= '            return response()->json(["info"=>"You must be logged in."], 403);';
-        $functstr .= "\n        }";
+        $functstr .= '        ]);'."\r\n\r\n";
+        $functstr .= '        $isExist = '.$this->getModel($table)['model'].'::where(['."\r\n";
+        foreach($fields as $field) {
+            $functstr .= '            \''.$field.'\' => $request->'.$field.','."\r\n";
+        }
+        $functstr .= '        ])->exists();'."\r\n\r\n";
+
+        $functstr .= '        if(!$isExist) {'."\r\n";
+        $functstr .= '            if('.$model.'::create($request->all())) {'."\r\n";
+        $functstr .= '                return $this->success(null, "'.Inflect::singularize($table).' created successfully!", 201);'."\r\n";
+        $functstr .= '            } else {'."\r\n";
+        $functstr .= '                return $this->error("There is an error!", 500);'."\r\n";
+        $functstr .= '            }'."\r\n";
+        $functstr .= '        } else {'."\r\n";
+        $functstr .= '            return $this->error("This '.Inflect::singularize($table).' entry exists.", 400);'."\r\n";
+        $functstr .= '        }'."\r\n";
         $functstr .= "\n    }\n\n";
         return $functstr;
     }
@@ -218,11 +280,7 @@ class Apimake
         $functstr .= "     * @param  \App\\$model ".'$'.strtolower($param)."\n";
         $functstr .= "     * @return \Illuminate\Http\Response\n     */\n";
         $functstr .= '    public function show('.$model.' $'.strtolower($param).")\n    {\n";
-        $functstr .= '        if($this->currentUser()){'."\n";
-        $functstr .= '            return $'.strtolower($param).";";
-        $functstr .= "\n        }else{\n";
-        $functstr .= '            return response()->json(["info"=>"You must be logged in."], 403);';
-        $functstr .= "\n        }";
+        $functstr .= '        return $this->success($'.strtolower($param).', "'.ucfirst($param).' returned!", 200);'."\r\n";
         $functstr .= "\n    }\n\n";
         return $functstr;
     }
@@ -235,17 +293,11 @@ class Apimake
         $functstr .= "     * @param  \App\\$model  ".'$'.$param."\n";
         $functstr .= "     * @return \Illuminate\Http\Response\n     */\n";
         $functstr .= "    public function update(Request ".'$request'.", $model ".'$'.$param.")\n    {\n";
-        $functstr .= '        if($this->currentUser()){'."\n";
-        foreach($cols as $col){
-            if($col == "modified_by"){
-                $functstr .= '            $request->modified_by = $this->currentUser()->id;'."\n";
-            }else{}
-        }
-        $functstr .= '            $'.$param."->update(".'$request'."->all());\n";
-        $functstr .= "            return response()->json(['info' => '".ucwords($param)." successfully updated.'], 200);";
-        $functstr .= "\n        }else{\n";
-        $functstr .= '            return response()->json(["info"=>"You must be logged in."], 403);';
-        $functstr .= "\n        }";
+        $functstr .= '        if ($'.$param.'->update($request->all())) {'."\r\n";
+        $functstr .= '            return $this->success($'.strtolower($param).', "'.ucfirst($param).' updated successfully!", 200);'."\r\n";
+        $functstr .= '        } else {'."\r\n";
+        $functstr .= '            return $this->error("There is an error", 500);'."\r\n";
+        $functstr .= '        }'."\r\n";
         $functstr .= "\n    }\n\n";
         return $functstr;
     }
@@ -257,12 +309,11 @@ class Apimake
         $functstr .= "     * @param  \App\\$model  ".'$'.$param."\n";
         $functstr .= "     * @return \Illuminate\Http\Response\n     */\n";
         $functstr .= "    public function destroy($model ".'$'."$param)\n    {\n";
-        $functstr .= '        if($this->currentUser()){'."\n";
-        $functstr .= '            $'.$param."->delete();"."\n";
-        $functstr .= "            return response()->json(['info' => '".ucwords($param)."  deleted successfully.'], 200);";
-        $functstr .= "\n        }else{\n";
-        $functstr .= '            return response()->json(["info"=>"You must be logged in."], 403);';
-        $functstr .= "\n        }";
+        $functstr .= '         if ($'.$param.'->delete()) {'."\r\n";
+        $functstr .= '             return $this->success($'.$param.', "'.ucfirst($param).' deleted successfully!", 200);'."\r\n";
+        $functstr .= '         } else {'."\r\n";
+        $functstr .= '              return $this->error("There is an error", 500);'."\r\n";
+        $functstr .= '         }'."\r\n";
         $functstr .= "\n    }\n\n";
         return $functstr;
     }
