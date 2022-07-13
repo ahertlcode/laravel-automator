@@ -181,6 +181,7 @@ class Bulma {
         $lheaders .= '        <link rel="stylesheet" href="css/custom/uploadfile.css" >'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="css/custom/slide-menu.css" >'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="css/custom/table-header.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/custom/view.css" >'."\r\n";
         $lheaders .= "      </head>";
         return $lheaders;
     }
@@ -190,13 +191,23 @@ class Bulma {
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular-route.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery-ui.js"></script>';
-        // $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.datepick.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.datepick.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.table2excel.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.uploadfile.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/utility.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/autocomplete.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/route.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/bundle.js"></script>';
+        $html_body .= "\r\n    ".'<script>'."\n";
+        $html_body .= "\r\n         ".'function myFunction() {'."\n";
+        $html_body .= "\r\n               ".'var x = document.getElementById("myLinks");';
+        $html_body .= "\r\n               ".'if (x.style.display === "block") {';
+        $html_body .= "\r\n               ".'    x.style.display = "none"; ';
+        $html_body .= "\r\n               ".'} else {';
+        $html_body .= "\r\n               ".'    x.style.display = "block"; ';
+        $html_body .= "\r\n               ".'} ';
+        $html_body .= "\r\n         ".'}';
+        $html_body .= "\r\n    ".'</script>';
         return $html_body;
     }
 
@@ -211,7 +222,7 @@ class Bulma {
         $lbodyo .= '                       <a class="navbar-item" href="/">'."\n";
         $lbodyo .= '                           <h3>'.ucfirst($dbname).'</h3>'."\n";
         $lbodyo .= '                       </a>'."\n";
-        $lbodyo .= '                       <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">'."\n";
+        $lbodyo .= '                       <a role="button" href="javascript:void(0);" class="navbar-burger" aria-label="menu" aria-expanded="false" onclick="myFunction()">'."\n";
         $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
         $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
         $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
@@ -225,7 +236,7 @@ class Bulma {
         $lbodyo .= '                   </div>'."\n";
         $lbodyo .= '               </nav>'."\n";
         $lbodyo .= '               <section class="main-content columns is-fullheight">'."\n";
-        $lbodyo .= '                   <aside class="column is-2 is-narrow-mobile is-fullheight section is-hidden-mobile">'."\n";
+        $lbodyo .= '                   <aside class="column is-2 is-narrow-mobile is-fullheight section" id="myLinks">'."\n";
         $lbodyo .= '                       <p class="menu-label is-hidden-touch">Navigation</p>'."\n";
         $lbodyo .= '                       <ul class="menu-list">'."\n";
         foreach ($tables as $tbl) {
