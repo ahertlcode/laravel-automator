@@ -11,14 +11,17 @@ class AngularApp {
     private static $exemptedColumns;
     private static $dbh;
     public static function Automate($opt=null, $tables=null, $columns=null){
-        global $dbname;
+        global $dbname, $app_dir;
         self::$dbh = new DbHandlers();
         if ($tables != null) self::$exemptedTables = $tables;
         if ($columns != null) self::$exemptedColumns = $columns;
         foreach(self::$dbh->show_dbTables() as $table){
-            self::$tables[] = $table["Tables_in_".$dbname];
+            $table_name = $table["Tables_in_".$dbname];
+            if (!in_array($table_name, self::$exemptedTables)) self::$tables[] = $table_name;
         }
         self::create_javascript(self::$tables);
+        exec("npm install -g browserify");
+        exec("cd $app_dir/resources && browserify script/* -o js/bundle.js");
     }
 
     private static function exempted($tb){
@@ -39,11 +42,9 @@ class AngularApp {
 
     private static function get_table_columns($tbl){
         $form_fields = array();
-        $struct = self::$dbh->tableDesc($tbl);
+        if (!in_array($tbl, self::$exemptedTables)) $struct = self::$dbh->tableDesc($tbl);
         foreach($struct as $field){
-            if($field["Field"]==="id" || $field["Field"]==="status" || $field["Field"]==="created_by" || $field["Field"]==="user_id") continue;
-            if($field["Field"]==="password_digest" || $field["Field"]==="password_reset_token" || $field["Field"]==="api_token" || $field["Field"]==="remember_token") continue;
-            $form_fields[] = $field;
+            if (!in_array($field['Field'], self::$exemptedColumns)) $form_fields[] = $field;
         }
         return $form_fields;
     }
@@ -144,8 +145,8 @@ class AngularApp {
         $tbj = Inflect::singularize($tb);
         $jstr ="//javascript file for ".$tb." using angularjs for data-binding.\r\n";
         //$jstr .='var base_api_url = "http://localhost:8085/'.$jdb->dbname.'/api/";'."\r\n";
-        $jstr .='var user = local_store({}, "'.$tb.'User", "get");'."\r\n";
-        $jstr .="var app = angular.module('".$tb."View', []);\r\n\r\n";
+        //$jstr .='var user = local_store({}, "'.$tb.'User", "get");'."\r\n";
+        //$jstr .="var app = angular.module('".$tb."View', []);\r\n\r\n";
         $jstr .='app.controller ('."'".$tb."Ctrl'".', function($scope, $http) {'."\r\n\r\n";
         $jstr .='    this.'.$tbj.' = { ';
         $jstr .= self::get_tab_string($tb);
@@ -157,13 +158,13 @@ class AngularApp {
         $jstr .= self::get_js_delete_method($tb); //delete method
         $jstr .= self::get_js_main_view($tb); //main model view
         $jstr .="});\r\n";
-        $file_dir = $app_dir."/resources/js/$tb";
-        $js_file = $app_dir."/resources/js/$tb/".$tbj.".js";
+        $file_dir = $app_dir."/resources/script";
+        $js_file = $app_dir."/resources/script/".$tbj.".js";
         if(is_readable($js_file)){
             file_put_contents($js_file, $jstr);
         }else{
             exec("mkdir $file_dir");
-            exec("chmod -R 755 $app_dir/resources/js/");
+            exec("chmod -R 755 $app_dir/resources/script/");
             $fp = fopen($js_file,"w+");
             fwrite($fp, "file created", 128);
             fclose($fp);

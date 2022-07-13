@@ -83,7 +83,7 @@ class DbHandlers
 
                 return $each_rec;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
@@ -102,7 +102,7 @@ class DbHandlers
             $each_rec = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             return $each_rec;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
@@ -126,21 +126,6 @@ class DbHandlers
         return $fkeys;
     }
 
-/*    public function getFkeys($current_table="", $current_column="", $ref_table="", $ref_column="") {
-        $tableQuery = ($current_table != "") ? "AND (table_name='$current_table')" : "";
-        $columnQuery = ($current_column != "") ? "AND column_name IN ($current_column)" : "";
-        $refTableQuery = ($ref_table != "") ? "AND (referenced_table_name='$ref_table')" : "";
-        $refColumnQuery = ($ref_column != "") ? "AND (referenced_column_name='$ref_column')" : "";
-
-        $query = "SELECT table_name, column_name, referenced_table_name, referenced_column_name";
-        $query .= " FROM information_schema.key_column_usage WHERE (referenced_table_name IS NOT NULL)";
-        $query .= " $tableQuery $columnQuery $refTableQuery $refColumnQuery";
-       
-        $fkeys = ($query != "") ? $this->getRowAssoc($query) : "";
-
-        return $fkeys;
-    }
-*/
     public function tableDesc($tablename)
     {
         return $this->desc_table($tablename);
@@ -165,7 +150,7 @@ class DbHandlers
             $myfile = fopen('error/errorlog.txt', 'a+');
             fwrite($myfile, $errorMsg);
             fclose($myfile);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
@@ -188,7 +173,7 @@ class DbHandlers
                 return false;
             }
             fclose($myfile);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo $e->getMessage();
         }
     }
@@ -256,7 +241,7 @@ class DbHandlers
                     $this->Qres = $stmt->execute();
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
@@ -320,7 +305,7 @@ class DbHandlers
                     $this->Qres = $stmt->execute($paramArr);
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
@@ -429,7 +414,7 @@ class DbHandlers
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();
@@ -495,7 +480,7 @@ class DbHandlers
                     $this->Qres = $stmt->execute($condParam);
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->errLine = $e->getLine();
             $this->errFile = $e->getFile();
             $this->errMsg = $e->getMessage();

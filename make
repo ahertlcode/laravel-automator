@@ -19,9 +19,7 @@ $exemptedColumns = $config['excludeColumns'];
 require 'autoload.php';
 
 //create laravel application
-//$app_dir = '../../laravel/varyd';
 $app_dir = '../../laravel/'.$dbname;
-//$app_dir_file = '../../laravel/varyd/artisan';
 $app_dir_file = '../../laravel/'.$dbname.'/artisan';
 if(!is_readable($app_dir_file)){
     $base_app_dir = '../../laravel';
@@ -49,13 +47,13 @@ use Automator\AngularApp;
 if(isset($argv[1]) && $argv[1] == "--api")
 {
     $auto = new Apimake();
-    $auto->Automate();
+    $auto->Automate($argv, $exemptedTable, $exemptedColumns);
 }else if(isset($argv[1]) && $argv[1] == "--app"){
-    $auto = new Appmake();
-    $auto->Automate();
+    $auto = new Appmake($argv, $exemptedTable, $exemptedColumns);
+    $auto->Automate($argv, $exemptedTable, $exemptedColumns);
 }else if(isset($argv[1]) && $argv[1] == "--view" && isset($argv[2])){
     $auto = new MakeView();
-    $auto->Automate($argv[2]);
+    $auto->Automate($argv, $exemptedTable, $exemptedColumns);
 }else if(isset($argv[1]) && $argv[1] == "--layout" && isset($argv[2])){
     $auto = new MakeLayout();
     $auto->Automate($argv[2]);
@@ -64,8 +62,7 @@ if(isset($argv[1]) && $argv[1] == "--api")
     $auto->Automate($argv[2]);
 }else if(isset($argv[1]) && $argv[1] == "--form" && isset($argv[2])){
     $auto = new MakeForm();
-    $auto->Automate($argv); 
-
+    $auto->Automate($argv, $exemptedTable, $exemptedColumns); 
 }elseif(isset($argv[1]) && $argv[1] == "--ng" && isset($argv[2])){
     $auto = new AngularApp();
     $auto->Automate($argv, $exemptedTable, $exemptedColumns);

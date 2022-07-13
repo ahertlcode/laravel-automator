@@ -7,21 +7,166 @@ use Automator\Utilities;
 
 
 class Bulma {
+
     private static $tables = array();
     private static $dbh;
     private static $jsapp;
-    public static function make($jsapp=null, $landing=false){
+    private static $excludeTables;
+    private static $excludeColumns;
+
+    public static function make($jsapp=null, $landing=false, $reporting=false, $opt=null, $tables=null, $columns=null){
         global $dbname;
         if ($jsapp != null) self::$jsapp = $jsapp;
         self::$dbh = new DbHandlers();
+        if ($tables != null) self::$excludeTables = $tables;
+        if ($columns != null) self::$excludeColumns = $columns;
         foreach(self::$dbh->show_dbTables() as $table){
-            self::$tables[] = $table["Tables_in_".$dbname];
+            $table_name = $table["Tables_in_".$dbname];
+            if (!in_array($table_name, self::$excludeTables)) self::$tables[] = $table_name;
         }
         self::forms(self::$tables);
+        if ($reporting) self::makeReports(self::$tables);
+        if($jsapp == "ng") self::makeAngularRoute(self::$tables);
         if($landing) self::makeLandingPage(self::$tables);
         self::copy_assets();
     }
 
+    private static function do_html_table($table, $fields) {
+        global $app_dir;
+        $cols = sizeof($fields)+1;
+        $tblStr = '<table class="table is-hoverable is-striped is-fullwidth" ng-controller="'.$table.'Ctrl">'."\r\n";
+        $tblStr .= '    <thead>'."\r\n";
+        $tblStr .= '        <tr>'."\r\n";
+        foreach($fields as $field) {
+            $tblStr .= '            <th>'.strtoupper($field).'</th>'."\r\n";
+        }
+        $tblStr .= '            <th>&nbsp;</th>'."\r\n";
+        $tblStr .= '        </tr>'."\r\n";
+        $tblStr .= '    </thead>'."\r\n";
+        $tblStr .= '    <tbody>'."\r\n";
+        $tblStr .= '        <tr *ngFor="let '.Inflect::singularize($table).' in '.$table.'">'."\r\n";
+        foreach($fields as $field) {
+            $tblStr .= '            <td>{{'.Inflect::singularize($table).'.'.$field.'}}</td>'."\r\n";
+        }
+        $tblStr .='            <td>'."\r\n";
+        $tblStr .='                <a class="button is-success" href="#!/'.Inflect::singularize($table).'/edit/{{'.Inflect::singularize($table).'.id}}">'."\r\n";
+        $tblStr .='                    <span class="icon">'."\r\n";
+        $tblStr .='                        <i class="mdi mdi-file-document-edit"></i>'."\r\n";
+        $tblStr .='                    </span>'."\r\n";
+        $tblStr .='                </a>&nbsp;'."\r\n";
+        $tblStr .='                <a class="button is-success" href="#!/'.Inflect::singularize($table).'/view/{{'.Inflect::singularize($table).'.id}}">'."\r\n";
+        $tblStr .='                    <span class="icon">'."\r\n";
+        $tblStr .='                        <i class="mdi mdi-file-document-eye"></i>'."\r\n";
+        $tblStr .='                    </span>'."\r\n";
+        $tblStr .='                </a>&nbsp;'."\r\n";
+        $tblStr .='                <a class="button is-danger" ng-click="remove('.Inflect::singularize($table).'.id);">'."\r\n";
+        $tblStr .='                    <span class="icon">'."\r\n";
+        $tblStr .='                        <i class="mdi mdi-trash-can"></i>'."\r\n";
+        $tblStr .='                   </span>'."\r\n";
+        $tblStr .='               </a>'."\r\n";
+        $tblStr .='           </td>'."\r\n";
+        $tblStr .= '        </tr>'."\r\n";
+        $tblStr .= '    </tbody>'."\r\n";
+        $tblStr .= '    <tfoot>'."\r\n";
+        $tblStr .= '       <tr>'."\r\n".'            <td colspan="'.$cols.'">'."\r\n";
+        $tblStr .= '                <button type="button" *ngFor="let '.Inflect::singularize($table).' of '.$table.'; index as idx;">{{idx}}</button>'."\r\n";
+        $tblStr .= '            </td>'."\r\n".'        </tr>'."\r\n";
+        $tblStr .= '    </tfoot>'."\r\n";
+        $tblStr .= '</table>'."\r\n";
+        $file_dir = $app_dir."/resources/views/$table";
+        $views_file = $app_dir."/resources/views/$table/".$table.".html";
+        if(is_readable($views_file)){
+            file_put_contents($views_file, $tblStr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/views/");
+            $fp = fopen($views_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($views_file, $tblStr);
+        }
+    }
+
+    private static function do_html_table_two_column($table, $fields){
+        global $app_dir;
+        $tblStr = '<table class="table is-hoverable is-striped is-fullwidth" ng-controller="'.$table.'Ctrl">'."\r\n";
+        $tblStr .= '    <tbody>'."\r\n";
+        foreach($fields as $field) {
+            $tblStr .= '        <tr>'."\r\n";
+            $tblStr .= '            <th>'.strtoupper($field).'</th>';
+            $tblStr .= '<td>{{'.Inflect::singularize($table).'.'.$field.'}}</td>'."\r\n";
+            $tblStr .= '        </tr>'."\r\n";
+        }
+        $tblStr .= '    </tbody>'."\r\n";
+        $tblStr .= '</table>'."\r\n";
+        $file_dir = $app_dir."/resources/views/$table";
+        $views_file = $app_dir."/resources/views/$table/".Inflect::singularize($table)."_view.html";
+        if(is_readable($views_file)){
+            file_put_contents($views_file, $tblStr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/views/");
+            $fp = fopen($views_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($views_file, $tblStr);
+        }
+    }
+
+    private static function makeReports($tables) {
+        foreach($tables as $table) {
+            $report_fields = array();
+            $struct = self::$dbh->tableDesc($table);
+            foreach($struct as $field){
+                if (!in_array($field['Field'], self::$excludeColumns)) $report_fields[] = $field['Field'];
+            }
+            self::do_html_table($table, $report_fields);
+            self::do_html_table_two_column($table, $report_fields);
+        }
+    }
+
+    private static function makeAngularRoute($tables) {
+        global $dbname, $app_dir;
+        //$db = Inflect::singularize($dbname);
+        $routeStr = 'var base_api_url = "http://localhost:8000/api";'."\r\n";
+        $routeStr .= 'var app = angular.module("'.$dbname.'App", ["ngRoute"]);'."\r\n";
+        $routeStr .= 'app.config(function($routeProvider) {'."\r\n";
+        $routeStr .= '    $routeProvider'."\r\n";
+        foreach($tables as $table) {
+            $routeStr .= '    .when("/'.$table.'", {'."\r\n";
+            $routeStr .= '        templateUrl: "views/'.$table.'/'.$table.'.html",'."\r\n";
+            $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
+            $routeStr .= '    })'."\r\n";
+            $routeStr .= '    .when("/'.Inflect::singularize($table).'", {'."\r\n";
+            $routeStr .= '        templateUrl: "views/'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
+            $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
+            $routeStr .= '    })'."\r\n";
+            $routeStr .= '    .when("/'.Inflect::singularize($table).'/edit/:id", {'."\r\n";
+            $routeStr .= '        templateUrl: "views/'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
+            $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
+            $routeStr .= '    })'."\r\n";
+            $routeStr .= '    .when("/'.Inflect::singularize($table).'/view/:id", {'."\r\n";
+            $routeStr .= '        templateUrl: "views/'.$table.'/'.Inflect::singularize($table).'_view.html",'."\r\n";
+            $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
+            $routeStr .= '    })'."\r\n";
+        }
+        $routeStr .= '    .otherwise({'."\r\n";
+        $routeStr.='        redirectTo : "/"'."\r\n";
+        $routeStr .='    })'."\r\n";
+        $routeStr .='});'."\r\n";
+        $file_dir = $app_dir."/resources/js";
+        $routefile = $app_dir."/resources/js/route.js";
+        if(is_readable($routefile)){
+            file_put_contents($routefile, $routeStr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/js/");
+            $fp = fopen($routefile,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($routefile, $routeStr);
+        }
+    }
 
     private static function headerFile() {
         global $dbname;
@@ -29,26 +174,29 @@ class Bulma {
         $lheaders .= "    <head>\r\n      <title>".ucfirst($dbname)."&reg;::Portal</title>\r\n";
         $lheaders .= '        <meta content="text/html" charset="utf-8" >'."\r\n";
         $lheaders .= '        <meta name="viewport" content="width=device-width, initial-scale=1">'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/bulma.min.css">'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/jquery-ui.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/jquery.datepick.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/uploadfile.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/fontawesome-all.min.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/custom/slide-menu.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="../../assets/css/custom/table-header.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/bulma.min.css">'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/jquery-ui.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/jquery.datepick.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/fontawesome-all.min.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/custom/uploadfile.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/custom/slide-menu.css" >'."\r\n";
+        $lheaders .= '        <link rel="stylesheet" href="css/custom/table-header.css" >'."\r\n";
         $lheaders .= "      </head>";
         return $lheaders;
     }
 
     private static function getscripts($tbi){
-        $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/angular.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery-ui.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.datepick.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.table2excel.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/jquery.uploadfile.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/utility.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="../../assets/js/autocomplete.js"></script>';
+        $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular-route.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery-ui.js"></script>';
+        // $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.datepick.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.table2excel.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.uploadfile.min.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/utility.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/autocomplete.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/route.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/bundle.js"></script>';
         return $html_body;
     }
 
@@ -56,7 +204,7 @@ class Bulma {
         global $dbname;
         global $app_dir;
         $lheaders = self::headerFile();
-        $lbodyo = "\r\n    ".' <body>'."\r\n";
+        $lbodyo = "\r\n    ".' <body ng-app="'.$dbname.'App">'."\r\n";
         $lbodyo .= '           <div class="container">'."\n";
         $lbodyo .= '               <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
         $lbodyo .= '                   <div class="navbar-brand">'."\n";
@@ -72,14 +220,6 @@ class Bulma {
         $lbodyo .= '                   <div class="navbar-menu">'."\n";
         $lbodyo .= '                       <div class="navbar-end">'."\n";   
         $lbodyo .= '                           <div class="navbar-item">'."\n";
-        $lbodyo .= '                               <div class="buttons">'."\n";
-        $lbodyo .= '                                   <a class="button is-primary">'."\n";
-        $lbodyo .= '                                       <strong>Sign up</strong>'."\n";
-        $lbodyo .= '                                   </a>'."\n";
-        $lbodyo .= '                                   <a class="button is-light">'."\n";
-        $lbodyo .= '                                       Log in'."\n";
-        $lbodyo .= '                                   </a>'."\n";
-        $lbodyo .= '                               </div>'."\n";
         $lbodyo .= '                           </div>'."\n";
         $lbodyo .= '                       </div>'."\n";
         $lbodyo .= '                   </div>'."\n";
@@ -90,7 +230,7 @@ class Bulma {
         $lbodyo .= '                       <ul class="menu-list">'."\n";
         foreach ($tables as $tbl) {
             $lbodyo .= '                       <li>'."\n";
-            $lbodyo .= '                           <a href="#">'."\n";
+            $lbodyo .= '                           <a href="#!/'.$tbl.'">'."\n";
             $lbodyo .= '                               '.$tbl.'    '."\n";
             $lbodyo .= '                           </a>'."\n";
             $lbodyo .= '                       </li>'."\n";
@@ -98,8 +238,9 @@ class Bulma {
         $lbodyo .= '                       </ul>'."\n";
         $lbodyo .= '                </aside>'."\n";
         $lbodyo .= '                <div class="container column is-10">'."\n";
-        $lbodyo .= '                    <div class="section">'."\n";
-        $lbodyo .= '                    </div>'."\n";
+        $lbodyo .= '                    <div ng-view></div>'."\r\n";
+        //$lbodyo .= '                    <div class="section">'."\n";
+        //$lbodyo .= '                    </div>'."\n";
         $lbodyo .= '                </div>'."\n";
         $lbodyo .= '            </section>'."\n";
         $lbodyo .= '        </div>'."\n";
@@ -107,13 +248,13 @@ class Bulma {
         $lfooter = "\n\n".'   </body>'."\n";
         $lfooter .= '</html>'."\n";
         $lbody = $lheaders.$lbodyo.$lscripts.$lfooter;
-        $file_dir = $app_dir."/resources/views/";
-        $views_file = $app_dir."/resources/views/index.html";
+        $file_dir = $app_dir."/resources/";
+        $views_file = $app_dir."/resources/index.html";
         if(is_readable($views_file)){
             file_put_contents($views_file, $lbody);
         }else{
             exec("mkdir $file_dir");
-            exec("chmod -R 755 $app_dir/resources/views/");
+            exec("chmod -R 755 $app_dir/resources/");
             $fp = fopen($views_file,"w+");
             fwrite($fp, "file created", 128);
             fclose($fp);
@@ -124,19 +265,19 @@ class Bulma {
 
     private static function copy_assets(){
         global $app_dir;
-        if(!file_exists($app_dir.'/assets/css'))
+        if(!file_exists($app_dir.'/resources/css'))
         {
-            mkdir($app_dir.'/assets/css', 0777, true);
-            mkdir($app_dir.'/assets/js', 0777, true);
-            mkdir($app_dir.'/assets/webfonts', 0777, true);
-            mkdir($app_dir.'/assets/ckeditor', 0777, true);
-            mkdir($app_dir.'/server', 0777, true);
+            mkdir($app_dir.'/resources/css', 0777, true);
+            mkdir($app_dir.'/resources/js', 0777, true);
+            mkdir($app_dir.'/resources/webfonts', 0777, true);
+            mkdir($app_dir.'/resources/ckeditor', 0777, true);
+            #mkdir($app_dir.'/server', 0777, true);
         }
 
-        utilities::xcopy('automator/css/', $app_dir.'/assets/css');
-        utilities::xcopy('automator/js/', $app_dir.'/assets/js');
-        utilities::xcopy('automator/webfonts/', $app_dir.'/assets/webfonts');
-        utilities::xcopy('automator/ckeditor/', $app_dir.'/assets/ckeditor');
+        utilities::xcopy('automator/css/', $app_dir.'/resources/css');
+        utilities::xcopy('automator/js/', $app_dir.'/resources/js');
+        utilities::xcopy('automator/webfonts/', $app_dir.'/resources/webfonts');
+        utilities::xcopy('automator/ckeditor/', $app_dir.'/resources/ckeditor');
     }
 
 
@@ -145,6 +286,7 @@ class Bulma {
         if(is_array($tables)){
             foreach($tables as $table){
                 self::make_form($table);
+                //self::make_view_table($table);
             }
         }else{
             echo "Parameter must be an array.";
@@ -156,12 +298,10 @@ class Bulma {
         $form_fields = array();
         $struct = self::$dbh->tableDesc($table);
         foreach($struct as $field){
-            if($field["Field"]==="id" || $field["Field"]==="status" || $field["Field"]==="created_by" || $field["Field"]==="user_id") continue;
-            if($field["Field"]==="password_digest" || $field["Field"]==="password_reset_token" || $field["Field"]==="api_token" || $field["Field"]==="remember_token") continue;
-            $form_fields[] = $field;
+            if (!in_array($field['Field'], self::$excludeColumns)) $form_fields[] = $field;
         }
         self::do_html_form_create($form_fields, $table);
-        self::do_html_form_edit($form_fields, $table);
+        #self::do_html_form_edit($form_fields, $table);
     }
 
     /**
@@ -172,15 +312,7 @@ class Bulma {
         global $dbname;
         global $app_dir;
         $filename = Inflect::singularize($table);
-        $form_str = '<!DOCTYPE html>'."\n";
-        $form_str .= '<html lang="en">'."\n";
-        $form_str .= '  <head>'."\n";
-        $form_str .= '      <title> create'.$table.'</title>'."\n";
-        $form_str .= '      <meta charset="UTF-8">'."\n";
-        $form_str .= '      <meta name="viewport" content="width=device-width, initial-scale=1">'."\n";
-        $form_str .= '  </head>'."\n";
-        $form_str .= '  <body>'."\n";
-        $form_str .= '      <form class="form container" method="POST" enctype="multipart/form-data">'."\n";
+        $form_str = '      <form class="form container" method="POST" enctype="multipart/form-data" ng-controller="'.$table.'Ctrl">'."\n";
         $form_str .= '          <h1 class="title is-3">ADD '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
         foreach($fields as $field){
             $req = false;
@@ -198,10 +330,8 @@ class Bulma {
         }
         $form_str .= self::getButtonGrp($table);
         $form_str .= "      </form>"."\n";
-        $form_str .= '  </body>'."\n";
-        $form_str .= '</html>'."\n";
         $file_dir = $app_dir."/resources/views/$table";
-        $views_file = $app_dir."/resources/views/$table/create.".ucfirst($table).".html";
+        $views_file = $app_dir."/resources/views/$table/".Inflect::singularize($table).".html";
         if(is_readable($views_file)){
             file_put_contents($views_file, $form_str);
         }else{
