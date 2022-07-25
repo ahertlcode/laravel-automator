@@ -68,7 +68,8 @@ class AngularApp {
         $jsave .='        $http({'."\r\n";
         $jsave .='            url: base_api_url+"/'.$tbs.'",'."\r\n";
         $jsave .='            method: "POST",'."\r\n";
-        $jsave .='            data:this.'.$tb."\r\n";
+        $jsave .='            data:this.'.$tb.','."\r\n";
+        $jsave .='            headers:headers'."\n";
         $jsave .='        }).then((result) =>{'."\r\n";
         $jsave .='            $scope.info = result.message;'."\r\n";
         $jsave .='        }, function(error){'."\r\n";
@@ -84,6 +85,7 @@ class AngularApp {
         $jsview .='        $http({'."\r\n";
         $jsview .='            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $jsview .='            method: "GET",'."\r\n";
+        $jsview .='            headers:headers'."\n";
         $jsview .='        }).then((result) =>{'."\r\n";
         $jsview .='            $scope.'.$tb.' = result.message;'."\r\n";
         $jsview .='        }, function(error){'."\r\n";
@@ -99,7 +101,8 @@ class AngularApp {
         $upstr .='        $http({'."\r\n";
         $upstr .='            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $upstr .='            method: "PUT",'."\r\n";
-        $upstr .='            data:this.'.$tb."\r\n";
+        $upstr .='            data:this.'.$tb.','."\r\n";
+        $upstr .='            headers:headers'."\n";
         $upstr .='        }).then((result) =>{'."\r\n";
         $upstr .='            $scope.'.$tb.' = result.message;'."\r\n";
         $upstr .='        }, function(error){'."\r\n";
@@ -116,7 +119,7 @@ class AngularApp {
         $delstr .='            $http({'."\r\n";
         $delstr .='                url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $delstr .='                method: "DELETE",'."\r\n";
-        $delstr .='                data:{"method":"delete", "table":"'.$tbs.'", "col_name":coln, "col_value":colv }'."\r\n";
+        $delstr .='                 headers:headers'."\n";
         $delstr .='            }).then((result) =>{'."\r\n";
         $delstr .='               $scope.'.$tb.' = result.message;'."\r\n";
         $delstr .='            }, function(error){'."\r\n";
@@ -132,6 +135,7 @@ class AngularApp {
         $mainstr  ='    $http({'."\r\n";
         $mainstr .='        url: base_api_url+"/'.$tbs.'",'."\r\n";
         $mainstr .='        method: "GET",'."\r\n";
+        $mainstr .='        headers:headers'."\n";
         $mainstr .='    }).then((result) =>{'."\r\n";
         $mainstr .='        $scope.'.$tbs.' = result.message;'."\r\n";
         $mainstr .='    }, function(error){'."\r\n";
@@ -141,7 +145,7 @@ class AngularApp {
     }
 
     private static function do_js_file($tb){
-        global $app_dir;
+        global $app_dir, $dbname;
         $tbj = Inflect::singularize($tb);
         $jstr ="//javascript file for ".$tb." using angularjs for data-binding.\r\n";
         //$jstr .='var base_api_url = "http://localhost:8085/'.$jdb->dbname.'/api/";'."\r\n";
@@ -151,6 +155,12 @@ class AngularApp {
         $jstr .='    this.'.$tbj.' = { ';
         $jstr .= self::get_tab_string($tb);
         $jstr .='};'."\r\n\n\n";
+        $jstr .= '   let user_token = local_store("get", "'.$dbname.'-user").token;'."\n\n";
+        $jstr .= '    let headers = {'."\n";
+        $jstr .= '        "Content-Type":"application/json",'."\n";
+        $jstr .= '        "Accept":"application/json",'."\n";
+        $jstr .= '        "Authorization":"Bearer "+user_token'."\n";
+        $jstr .= '    };'."\n\n";
         //$jstr .="    this.update = {col_name:'', col_value:''};\r\n\r\n";
         $jstr .= self::get_js_save_method($tb); //create and update method
         $jstr .= self::get_js_view_method($tb); //retrieve method

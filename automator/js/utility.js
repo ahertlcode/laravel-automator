@@ -72,7 +72,7 @@ function getCookie(cname) {
     return "";
 }
 
-function local_store(arr, desc, actn) {
+function local_store2(arr, desc, actn) {
     var retn;
     if (typeof(Storage) !== undefined) {
         // Code for localStorage/sessionStorage.
@@ -101,6 +101,15 @@ function local_store(arr, desc, actn) {
         //Sorry! No Web Storage support..
     }
     return retn;
+}
+
+const local_store = (act, key=null, value = null) => {
+    let retVal;
+    retVal = (act === 'get') ? localStorage.getItem(key) : "";
+    (act === 'add') ? localStorage.setItem(key, JSON.stringify(value)) : "";
+    (act === 'del') ? localStorage.removeItem(key) : "";
+    (act === 'cls') ? localStorage.clear() : "";
+    if(retVal && retVal !== "") return JSON.parse(retVal);
 }
 
 function getRandomNumber(start = 0, end = 1000) {
