@@ -1,8 +1,6 @@
 <?php
     namespace Automator;
 
-    use Automator\Support\Inflect;
-    use Automator\Support\DbHandlers;
     use Automator\Support\Forms;
 
     class MakeForm {
