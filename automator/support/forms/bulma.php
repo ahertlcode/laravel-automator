@@ -185,6 +185,17 @@ class Bulma {
         return $lheaders;
     }
 
+    private static function  getSnippet() {
+        $snippetStr = <<< END
+        doPop = (title, content) => {
+            $('.modal-card-title').html(title);
+            $('.modal-card-body').load(content);
+            $('.modal').toggleClass('is-active');
+        }
+        END;
+        return $snippetStr;
+    }
+
     private static function getscripts($tbi){
         $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular.min.js"></script>';
@@ -197,7 +208,32 @@ class Bulma {
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/autocomplete.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/route.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/bundle.js"></script>';
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript">';
+        $html_body .= self::getSnippet();
+        $html_body .= "\r\n    ".'</script>';
         return $html_body;
+    }
+
+    private static function getModal() {
+        $modalStr = <<< END
+        <div class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Modal title</p>
+                    <button class="delete" aria-label="close"></button>
+                </header>
+                <section class="modal-card-body">
+                    <!-- Content ... -->
+                </section>
+                <footer class="modal-card-foot">
+                    <button class="button is-success">Save changes</button>
+                    <button class="button">Cancel</button>
+                </footer>
+            </div>
+        </div>
+        END;
+        return $modalStr;
     }
 
     private static function makeLandingPage($tables) {
@@ -244,6 +280,7 @@ class Bulma {
         $lbodyo .= '                </div>'."\n";
         $lbodyo .= '            </section>'."\n";
         $lbodyo .= '        </div>'."\n";
+        $lbodyo .= self::getModal();
         $lscripts = self::getscripts($tables);
         $lfooter = "\n\n".'   </body>'."\n";
         $lfooter .= '</html>'."\n";
@@ -265,18 +302,9 @@ class Bulma {
 
     private static function copy_assets(){
         global $app_dir;
-        if(!file_exists($app_dir.'/resources/css'))
-        {
-            mkdir($app_dir.'/resources/css', 0777, true);
-            mkdir($app_dir.'/resources/js', 0777, true);
-            mkdir($app_dir.'/resources/webfonts', 0777, true);
-            mkdir($app_dir.'/resources/ckeditor', 0777, true);
-            #mkdir($app_dir.'/server', 0777, true);
-        }
-
         utilities::xcopy('automator/css/', $app_dir.'/resources/css');
         utilities::xcopy('automator/js/', $app_dir.'/resources/js');
-        utilities::xcopy('automator/webfonts/', $app_dir.'/resources/webfonts');
+        //utilities::xcopy('automator/webfonts/', $app_dir.'/resources/css/webfonts');
         utilities::xcopy('automator/ckeditor/', $app_dir.'/resources/ckeditor');
     }
 
@@ -426,13 +454,10 @@ class Bulma {
         if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
         $select_str .=' >'."\n";
         $select_str .= '                        <option value="-1">Select '.$new_label.'</option>'."\n";
-        //$select_str .= '                @foreach($'.$items.' as $'.Inflect::singularize($items).')'."\n";
-        //$select_str .= '                        <option value="{{$'.Inflect::singularize($items).'->id}}">{{$'.Inflect::singularize($items).'->'.Inflect::singularize($items).'}}</option>'."\n";
-        //$select_str .= '                @endforeach'."\n";
-        //$select_str .= '                <option>{{item.name}}</option>'."\n";
         $select_str .= '                    </select>'."\n";
         $select_str .= '                </div>'."\n";
         $select_str .= '             </div>'."\n";
+        $select_str .= '             <a onclick="doPop(\'\',\'\');" class="btn"><i class="fa fa-plus fa-2x"></i></a>'."\n";
         return $select_str;
     }
 
