@@ -64,7 +64,7 @@ class AngularApp {
 
     private static function get_js_save_method($tbs){
         $tb = Inflect::singularize($tbs);
-        $jsave = '    $scope.'.$tb.'_save = function($scope, $http) {'."\r\n";
+        $jsave = '    $scope.'.$tb.'_save = function() {'."\r\n";
         $jsave .='        $http({'."\r\n";
         $jsave .='            url: base_api_url+"/'.$tbs.'",'."\r\n";
         $jsave .='            method: "POST",'."\r\n";
@@ -81,7 +81,7 @@ class AngularApp {
 
     private static function get_js_view_method($tbs) {
         $tb = Inflect::singularize($tbs);
-        $jsview = '    $scope.'.$tb.'_view_single = function($scope, $http, id){'."\r\n";
+        $jsview = '    $scope.'.$tb.'_view_single = function(id){'."\r\n";
         $jsview .='        $http({'."\r\n";
         $jsview .='            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $jsview .='            method: "GET",'."\r\n";
@@ -97,7 +97,7 @@ class AngularApp {
 
     private static function get_js_update_method($tbs) {
         $tb = Inflect::singularize($tbs);
-        $upstr = '    $scope.do_'.$tb.'_update = function($scope, $http, id){'."\r\n";
+        $upstr = '    $scope.do_'.$tb.'_update = function(id){'."\r\n";
         $upstr .='        $http({'."\r\n";
         $upstr .='            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $upstr .='            method: "PUT",'."\r\n";
@@ -115,7 +115,7 @@ class AngularApp {
 
     private static function get_js_delete_method($tbs) {
         $tb = Inflect::singularize($tbs);
-        $delstr = '    $scope.'.$tb.'_delete = function($scope, $http, id){'."\r\n";
+        $delstr = '    $scope.'.$tb.'_delete = function(id){'."\r\n";
         $delstr .='            $http({'."\r\n";
         $delstr .='                url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $delstr .='                method: "DELETE",'."\r\n";
@@ -144,6 +144,80 @@ class AngularApp {
         return $mainstr;
     }
 
+    private static function do_sign_up_file($tb) {
+        global $app_dir, $dbname;
+        $jstr ="//javascript file for Sign Up using angularjs for data-binding.\r\n";
+        $jstr .='app.controller ('."'".$tb."Ctrl'".', function($scope, $http) {'."\r\n\r\n";
+        $jstr .='    this.'.$tb.' = { ';
+        $jstr .= self::get_tab_string($tb);
+        $jstr .='};'."\r\n\n\n";
+
+        $jstr .= '    $scope.sign_up = function() {'."\r\n";
+        $jstr .='        $http({'."\r\n";
+        $jstr .='            url: base_api_url+"/auth/register",'."\r\n";
+        $jstr .='            method: "POST",'."\r\n";
+        $jstr .='            data:this.'.$tb.','."\r\n";
+        $jstr .='        }).then((result) =>{'."\r\n";
+        $jstr .='            $scope.info = result.message;'."\r\n";
+        $jstr .='            window.location.href("../login.html");'."\r\n";
+        $jstr .='        }, function(error){'."\r\n";
+        $jstr .='            $scope.error = error.statusText;'."\r\n";
+        $jstr .='        });'."\r\n";
+        $jstr .='    };'."\r\n\r\n";
+        $jstr .='  });'."\r\n";
+        $file_dir = $app_dir."/resources/js";
+        $js_file = $app_dir."/resources/js/signup.js";
+
+        if(is_readable($js_file)){
+            file_put_contents($js_file, $jstr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/script/");
+            $fp = fopen($js_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($js_file, $jstr);
+        }
+    }
+
+
+    private static function do_sign_in_file($tb) {
+        global $app_dir, $dbname;
+        $jstr ="//javascript file for Sign Up using angularjs for data-binding.\r\n";
+        $jstr .='app.controller ('."'".$tb."Ctrl'".', function($scope, $http) {'."\r\n\r\n";
+        $jstr .='    this.users = { email: "", password: "" }'."\r\n";
+
+
+        $jstr .= '    $scope.sign_in = function() {'."\r\n";
+        $jstr .='        $http({'."\r\n";
+        $jstr .='            url: base_api_url+"/auth/login",'."\r\n";
+        $jstr .='            method: "POST",'."\r\n";
+        $jstr .='            data:this.users,'."\r\n";
+        $jstr .='        }).then((result) =>{'."\r\n";
+        $jstr .='            $scope.info = result.message;'."\r\n";
+        $jstr .='            local_store("add", "'.$dbname.'User", { token: result.access_token});'."\r\n";
+        $jstr .='            window.location.replace("../views/dashboard.html");'."\r\n";
+        $jstr .='        }, function(error){'."\r\n";
+        $jstr .='            $scope.error = error.statusText;'."\r\n";
+        $jstr .='        });'."\r\n";
+        $jstr .='    };'."\r\n\r\n";
+        $jstr .='  });'."\r\n";
+        $file_dir = $app_dir."/resources/js";
+        $js_file = $app_dir."/resources/js/signin.js";
+
+        if(is_readable($js_file)){
+            file_put_contents($js_file, $jstr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/script/");
+            $fp = fopen($js_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($js_file, $jstr);
+        }
+    }
+
+    
     private static function do_js_file($tb){
         global $app_dir, $dbname;
         $tbj = Inflect::singularize($tb);
@@ -155,7 +229,7 @@ class AngularApp {
         $jstr .='    this.'.$tbj.' = { ';
         $jstr .= self::get_tab_string($tb);
         $jstr .='};'."\r\n\n\n";
-        $jstr .= '   let user_token = local_store("get", "'.$dbname.'-user").token;'."\n\n";
+        $jstr .= '   let user_token = local_store("get", "'.$dbname.'User").token;'."\n\n";
         $jstr .= '    let headers = {'."\n";
         $jstr .= '        "Content-Type":"application/json",'."\n";
         $jstr .= '        "Accept":"application/json",'."\n";
@@ -187,6 +261,10 @@ class AngularApp {
         foreach ($tbls as $table) {
             if (self::exempted($table) === false){
                 self::do_js_file($table);
+            }
+            if ($table == "users") {
+                self::do_sign_up_file($table);
+                self::do_sign_in_file($table);
             }
         }
     }
