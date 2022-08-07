@@ -22,12 +22,15 @@ class Bulma {
         if ($columns != null) self::$excludeColumns = $columns;
         foreach(self::$dbh->show_dbTables() as $table){
             $table_name = $table["Tables_in_".$dbname];
+
             if (!in_array($table_name, self::$excludeTables)) self::$tables[] = $table_name;
         }
         self::forms(self::$tables);
         if ($reporting) self::makeReports(self::$tables);
         if($jsapp == "ng") self::makeAngularRoute(self::$tables);
         if($landing) self::makeLandingPage(self::$tables);
+        self::makeIndexPage(self::$tables);
+        self::createSignInPage(self::$tables);
         self::copy_assets();
     }
 
@@ -150,6 +153,14 @@ class Bulma {
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
             $routeStr .= '    })'."\r\n";
         }
+        $routeStr .= '    .when("/auth/registers", {'."\r\n";
+        $routeStr .= '      templateUrl: "signup.html",'."\r\n";
+        $routeStr .= '      controller: "usersCtrl"'."\r\n";
+        $routeStr .='    })'."\r\n";
+        $routeStr .= '    .when("/auth/login", {'."\r\n";
+        $routeStr .= '      templateUrl: "login.html",'."\r\n";
+        $routeStr .= '      controller: "usersCtrl"'."\r\n";
+        $routeStr .='    })'."\r\n";
         $routeStr .= '    .otherwise({'."\r\n";
         $routeStr.='        redirectTo : "/"'."\r\n";
         $routeStr .='    })'."\r\n";
@@ -182,22 +193,20 @@ class Bulma {
         $lheaders .= '        <link rel="stylesheet" href="css/custom/slide-menu.css" >'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="css/custom/table-header.css" >'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="css/custom/view.css" >'."\r\n";
-        $lheaders .= "      </head>";
+        $lheaders .= "    </head>";
         return $lheaders;
     }
 
     private static function  getSnippet() {
-        $snippetStr = <<< END
-        doPop = (title, content) => {
-            $('.modal-card-title').html(title);
-            $('.modal-card-body').load(content);
-            $('.modal').toggleClass('is-active');
-        }
-        END;
+        $snippetStr ='    doPop = (title, content) => {'."\n";
+        $snippetStr .='        $(".modal-card-title").html(title);'."\n";
+        $snippetStr .='        $(".modal-card-body").load(content);'."\n";
+        $snippetStr .='        $(".modal").toggleClass("is-active");'."\n";
+        $snippetStr .='      }'."\n";
         return $snippetStr;
     }
 
-    private static function getscripts($tbi){
+    private static function getscripts($tbi, $rty = null){
         $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular-route.min.js"></script>';
@@ -209,6 +218,12 @@ class Bulma {
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/autocomplete.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/route.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/bundle.js"></script>';
+        if ($rty == 'signup') {
+            $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/signup.js"></script>';
+        }
+        if ($rty == 'signin') {
+            $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/signin.js"></script>';
+        }
         $html_body .= "\r\n    ".'<script>'."\n";
         $html_body .= "\r\n         ".'function myFunction() {'."\n";
         $html_body .= "\r\n               ".'var x = document.getElementById("myLinks");';
@@ -218,8 +233,9 @@ class Bulma {
         $html_body .= "\r\n               ".'    x.style.display = "block"; ';
         $html_body .= "\r\n               ".'} ';
         $html_body .= "\r\n         ".'}';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript">';
-        $html_body .= self::getSnippet();
+        $html_body .= "\r\n     ".'</script>'."\n";    
+        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript">'."\n";
+        $html_body .='  '.self::getSnippet();
         $html_body .= "\r\n    ".'</script>';
         return $html_body;
     }
@@ -246,6 +262,189 @@ class Bulma {
         return $modalStr;
     }
 
+    private static function createSignInPage($tables) {
+        global $dbname;
+        global $app_dir;
+        $sheaders = self::headerFile();
+        $sbody ="\r\n   ".'<body ng-app="'.$dbname.'App">'."\r\n";
+        $sbody .= '         <form class="form container" method="POST" enctype="multipart/form-data" ng-controller="usersCtrl">'."\n";
+        $sbody .= '          <div class="hero is-fullheight">'."\n";
+        $sbody .= '              <div class="hero-body is-justify-content-center is-align-items-center">'."\n";
+        $sbody .= '                  <div class="columns is-flex is-flex-direction-column box">'."\n";
+        $sbody .='               <h3 class="is-size-3 has-text-centered has-text-primary has-text-weight-bold">Sign In</h3>'."\n";
+        $sbody .= '                      <div class="column">'."\n";
+        $sbody .= '                          <label for="username">Username:</label>'."\n";
+        $sbody .= '                          <input id="email" name="email" ng-model="users.email" class="input is-primary" type="text" placeholder="Enter your username">'."\n";
+        $sbody .= '                      </div>'."\n";
+        $sbody .= '                      <div class="column">'."\n";
+        $sbody .= '                          <label for="password">Password</label>'."\n";
+        $sbody .= '                          <input id="password" name="password" ng-model="users.password" class="input is-primary" type="password" placeholder="Password">'."\n";
+        $sbody .= '                          <a href="#" class="is-size-7 has-text-primary">forget password?</a>'."\n";
+        $sbody .= '                      </div>'."\n";
+        $sbody .= '                      <div class="column">'."\n";
+        $sbody .= '                          <button class="button is-primary is-fullwidth"';
+        if (self::$jsapp == "ng") { $sbody .= 'type="button" ng-click="sign_in()"'; };
+        $sbody .= ' >Login</button>'."\n";
+        $sbody .= '                      </div>'."\n";
+        $sbody .= '                      <div class="has-text-centered">'."\n";
+        $sbody .= '                          <p class="is-size-7">Dont Have an Account?<a href="signup.html" class="has-text-primary">Sign up</a></p>'."\n";
+        $sbody .= '                      </div>'."\n";
+        $sbody .= '                  </div>'."\n";
+        $sbody .= '              </div>'."\n";
+        $sbody .= '          </div>'."\n";
+        $sbody .= '         </form>'."\n";
+        $signin = 'signin';
+        $Sscripts = self::getscripts($tables, $signin);
+        $sfooter = "\n\n".'   </body>'."\n";
+        $sfooter .= '</html>'."\n";
+        $sbodyo = $sheaders.$sbody.$Sscripts.$sfooter;
+        $file_dir = $app_dir."/resources";
+        $views_file = $app_dir."/resources/login.html";
+        if(is_readable($views_file)){
+            file_put_contents($views_file, $sbodyo);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/views");
+            $fp = fopen($views_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($views_file, $sbodyo);
+        }
+    }
+
+    private static function do_register_form_create($fields,$table) {
+        global $dbname;
+        global $app_dir;
+        $form_str = self::headerFile();
+        $form_str .="\r\n".'    <body ng-app="'.$dbname.'App" style="margin-top:50px;">'."\r\n";
+        $form_str .= '       <form class="form container" method="POST" enctype="multipart/form-data" ng-controller="'.$table.'Ctrl">'."\n";
+        $form_str .='         <div class="hero is-fullheight">'."\n";
+        $form_str .='           <div class="columns is-flex is-flex-direction-column box">'."\n";
+        $form_str .='               <h2 class="is-size-2 has-text-centered has-text-primary has-text-weight-bold">Sign Up</h2>'."\n";
+        foreach($fields as $field){
+            $req = false;
+            if (strpos($field["Type"], "int")>-1) {
+                if($field["Key"]!=="MUL"){
+                    if($field["Null"]==="NO") $req = true;
+                    $display = 'none';
+                    $form_str .= "    ".self::getSUInputField($field["Field"], "number", $table, $req, $display);
+                }else if($field["Key"] === "MUL"){
+                    $display = 'none';
+                    $form_str .= "    ".self::getSUSelectField($field["Field"], $table, $display );
+                }
+            }
+            else if(strpos($field["Type"], "varchar")>-1){
+                if($field["Null"]==="NO") $req = true;
+                $display = 'block';
+                $form_str .= "    ".self::getSUInputField($field["Field"], "text", $table, $req, $display);
+            }else if(strpos($field["Type"], "text")>-1){
+                $display = 'block';
+                $form_str .= "    ".self::getSUTextarea($field["Field"], $table, $display);
+            }
+        }
+        $form_str .= "\r\n".'        <div class="field">'."\n";
+        $form_str .='                 <label class="label" for="password_confirmation">Confirm Password</label>'."\n";
+        $form_str .='                 <div class="control">'."\n";
+        $form_str .='                   <input id="password_confirmation" name="password_confirmation" ng-model="users.password_confirmation" class="input" type="text" required>'."\r\n";
+        $form_str .='                 </div>'."\r\n";
+        $form_str .='                </div>'."\r\n";
+        $form_str .="\r\n".'<a class="has-text-right is-size-6 is-underlined" href="login.html">Already A member?</a>';
+        $form_str .= "\n".'        <div class="field is-grouped">'."\n";
+        $form_str .= '            <p class="control">'."\n";
+        $form_str .= '              <button ';
+        if (self::$jsapp == "ng") { $form_str .= 'type="button" ng-click="sign_up()"'; };
+        
+        $form_str .= ' class="button is-primary">'."\n";
+        $form_str .= '                Submit'."\n";
+        $form_str .= '              </button>'."\n";
+        $form_str .= '            </p>'."\n";
+        $form_str .= '            <p class="control">'."\n";
+        $form_str .= '              <button type="reset" class="button is-light">'."\n";
+        $form_str .= '                Clear'."\n";
+        $form_str .= '              </button>'."\n";
+        $form_str .= '            </p>'."\n";
+        $form_str .= '        </div>'."\n";
+
+        $form_str .="\n".'           </div>'."\n";
+        $form_str .='       </div>'."\n";
+        $form_str .= "      </form>"."\n";
+        $signup = 'signup';
+        $Sscripts = self::getscripts($table, $signup);
+        $sfooter = "\n\n".'   </body>'."\n";
+        $sfooter .= '</html>'."\n";
+        $formbody = $form_str.$Sscripts.$sfooter;
+        $file_dir = $app_dir."/resources";
+        $views_file = $app_dir."/resources/signup.html";
+        if(is_readable($views_file)){
+            file_put_contents($views_file, $formbody);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/views/");
+            $fp = fopen($views_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($views_file, $formbody);
+        }
+    }
+    
+    private static function createSignUpPage($table) {
+        $form_fields = array();
+        $struct = self::$dbh->tableDesc($table);
+        foreach($struct as $field){
+            if (!in_array($field['Field'], self::$excludeColumns)) $form_fields[] = $field;
+        }
+        self::do_register_form_create($form_fields, $table);
+    }
+
+    private static function makeIndexPage($tables) {
+        global $dbname;
+        global $app_dir;
+        
+        $lheaders = self::headerFile();
+        $lbodyo = "\r\n    ".' <body>'."\r\n";
+        $lbodyo .= '               <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
+        $lbodyo .= '                   <div class="navbar-brand">'."\n";
+        $lbodyo .= '                       <a class="navbar-item" href="/">'."\n";
+        $lbodyo .= '                           <h1 class="is-title is-3"><strong>'.strtoupper($dbname).'</strong></h1>'."\n";
+        $lbodyo .= '                       </a>'."\n";
+        $lbodyo .= '                       <a role="button" href="javascript:void(0);" class="navbar-burger" aria-label="menu" aria-expanded="false" onclick="myFunction()">'."\n";
+        $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
+        $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
+        $lbodyo .= '                           <span aria-hidden="true"></span>'."\n";
+        $lbodyo .= '                       </a>'."\n";
+        $lbodyo .= '                   </div>'."\n";
+        $lbodyo .= '                   <div class="navbar-menu">'."\n";
+        $lbodyo .= '                       <div class="navbar-end">'."\n";   
+        $lbodyo .= '                           <div class="navbar-item">'."\n";
+        $lbodyo .= '                                <div class="buttons">'."\n";
+        $lbodyo .= '                                    <a class="button is-primary" href="login.html">'."\n";
+        $lbodyo .= '                                        <strong>Log In</strong>'."\n";
+        $lbodyo .= '                                    </a>'."\n";
+        $lbodyo .= '                                    <a class="button is-light" href="signup.html">'."\n";
+        $lbodyo .= '                                        Sign Up'."\n";
+        $lbodyo .= '                                    </a>'."\n";
+        $lbodyo .= '                                </div>'."\n";
+        $lbodyo .= '                           </div>'."\n";
+        $lbodyo .= '                       </div>'."\n";
+        $lbodyo .= '                   </div>'."\n";
+        $lbodyo .= '               </nav>'."\n";
+        $lscripts = self::getscripts($tables);
+        $lfooter = "\n\n".'   </body>'."\n";
+        $lfooter .= '</html>'."\n";
+        $lbody = $lheaders.$lbodyo.$lscripts.$lfooter;
+        $file_dir = $app_dir."/resources";
+        $views_file = $app_dir."/resources/index.html";
+        if(is_readable($views_file)){
+            file_put_contents($views_file, $lbody);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/views");
+            $fp = fopen($views_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($views_file, $lbody);
+        }
+    }
     private static function makeLandingPage($tables) {
         global $dbname;
         global $app_dir;
@@ -295,13 +494,13 @@ class Bulma {
         $lfooter = "\n\n".'   </body>'."\n";
         $lfooter .= '</html>'."\n";
         $lbody = $lheaders.$lbodyo.$lscripts.$lfooter;
-        $file_dir = $app_dir."/resources/";
-        $views_file = $app_dir."/resources/index.html";
+        $file_dir = $app_dir."/resources/views";
+        $views_file = $app_dir."/resources/views/dashboard.html";
         if(is_readable($views_file)){
             file_put_contents($views_file, $lbody);
         }else{
             exec("mkdir $file_dir");
-            exec("chmod -R 755 $app_dir/resources/");
+            exec("chmod -R 755 $app_dir/resources/views");
             $fp = fopen($views_file,"w+");
             fwrite($fp, "file created", 128);
             fclose($fp);
@@ -312,9 +511,10 @@ class Bulma {
 
     private static function copy_assets(){
         global $app_dir;
+        
         utilities::xcopy('automator/css/', $app_dir.'/resources/css');
         utilities::xcopy('automator/js/', $app_dir.'/resources/js');
-        //utilities::xcopy('automator/webfonts/', $app_dir.'/resources/css/webfonts');
+        utilities::xcopy('automator/css/webfonts/', $app_dir.'/resources/css/webfonts');
         utilities::xcopy('automator/ckeditor/', $app_dir.'/resources/ckeditor');
     }
 
@@ -323,6 +523,9 @@ class Bulma {
     private static function forms($tables){
         if(is_array($tables)){
             foreach($tables as $table){
+                if (strtoupper($table) == 'USERS') {
+                    self::createSignUpPage($table);
+                }
                 self::make_form($table);
                 //self::make_view_table($table);
             }
@@ -341,6 +544,8 @@ class Bulma {
         self::do_html_form_create($form_fields, $table);
         #self::do_html_form_edit($form_fields, $table);
     }
+
+
 
     /**
      * .input .textarea .select
@@ -433,24 +638,80 @@ class Bulma {
         return [$field_id, $label, $model];
     }
 
-    private static function getInputField($name, $type, $table, $is_required){
+    private static function getSUInputField($name, $type, $table, $is_required, $disp=null) {
+        [$field_id, $label, $model] = self::getLabels($name, $table);
+        $input_str = "\n".'         <div class="field" ';
+        $input_str .= '>'."\n";
+        $input_str .= '            <label class="label">'.$label.'</label>'."\n";
+        $input_str .= '            <div class="control">'."\n";
+        $input_str .= '             <input id="'.$field_id.'" name="'.$field_id.'"';
+        if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
+        $input_str.=' class="input" ';
+        if ($disp == 'block') {
+            $input_str .= 'type="'.$type.'"';
+        }
+        if($is_required){
+            $input_str .= ' required';
+        }
+        $input_str .='>'."\n";
+        $input_str .='            </div>'."\n";
+        $input_str .= '        </div>';
+        if ($disp == 'none') {
+            $input_str ="\r\n".'        <input type="hidden" id="'.$field_id.'" name="'.$field_id.'" value="">'."\r\n";
+        }
+
+        return $input_str;
+    }
+
+    private static function getInputField($name, $type, $table, $is_required, $disp=null){
         [$field_id, $label, $model] = self::getLabels($name, $table);
         $input_str = "\n".'         <div class="field">'."\n";
         $input_str .= '            <label class="label">'.$label.'</label>'."\n";
         $input_str .= '            <div class="control">'."\n";
         $input_str .= '             <input id="'.$field_id.'" name="'.$field_id.'"';
         if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
-        $input_str.=' class="input" type="'.$type.'" ';
+        $input_str.=' class="input" ';
+        if ($disp == null || $disp == 'block') {
+            $input_str .= 'type="'.$type.'"';
+        }elseif ($disp == 'none') {
+            $input_str .= 'type = "hidden"';
+        }
         if($is_required){
             $input_str .= ' required';
         }
-        $input_str .= '>'."\n";
+        $input_str .='>'."\n";
         $input_str .='            </div>'."\n";
         /*if($is_required){
             $input_str .= '        <p class="help">This field is required</p>'."\n";
         }*/
         $input_str .= '        </div>';
         return $input_str;
+    }
+
+    private static function getSUSelectField($name, $table, $disp=null) {
+        [$field_id, $label, $model] = self::getLabels($name, $table);
+        $new_label = ucwords(str_replace(" id", "", strtolower($label)));
+        $items = Inflect::pluralize(strtolower(str_replace(" ","_",trim($new_label))));
+        $select_str = "\n".'         <div class="field"';
+        $select_str .= '>'."\n";
+        $select_str .= '              <label class="label">'.trim($new_label).'</label>'."\n";
+        $select_str .= '              <div class="select" style="width:100%;">'."\n";
+        $select_str .= '                  <select class="input" ';
+        if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
+        if ($disp == 'none') {
+            $select_str .= ' hidden="hidden" ';
+        }
+        $select_str .='>'."\n";
+        $select_str .= '                      <option value="-1">Select '.$new_label.'</option>'."\n";
+        $select_str .= '                  </select>'."\n";
+        $select_str .= '              </div>'."\n";
+        $select_str .= '         </div>'."\n";
+
+        if ($disp == 'none') {
+            $select_str ="\r\n".'       <input type="hidden" id="'.$field_id.'" name="'.$field_id.'" value="">'."\r\n";
+        }
+
+        return $select_str;
     }
 
     private static function getSelectField($name, $table){
@@ -462,7 +723,7 @@ class Bulma {
         $select_str .= '                <div class="select" style="width:100%;">'."\n";
         $select_str .= '                    <select class="input" ';
         if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
-        $select_str .=' >'."\n";
+        $select_str .='>'."\n";
         $select_str .= '                        <option value="-1">Select '.$new_label.'</option>'."\n";
         $select_str .= '                    </select>'."\n";
         $select_str .= '                </div>'."\n";
@@ -471,6 +732,26 @@ class Bulma {
         return $select_str;
     }
 
+    private static function getSUTextarea($name, $table,$disp=null) {
+        [$field_id, $label, $model] = self::getLabels($name, $table);
+        $txt_str = "\n".'             <div class="field" ';
+        $txt_str .= '>'."\n";
+        $txt_str .= '                   <label class="label">'.$label.'</label>'."\n";
+        $txt_str .= '                   <div class="control">'."\n";
+        $txt_str .= '                       <textarea id="'.$field_id.'" name="'.$field_id.'"';
+        if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
+        $txt_str .= ' class="textarea"';
+        $txt_str .= '></textarea>'."\n";
+        $txt_str .= '                   </div>'."\n";
+        $txt_str .= '                 </div>'."\n";
+        if ($disp == 'none') {
+            $txt_str ="\r\n".'          <input type="hidden" id="'.$field_id.'" name="'.$field_id.'" value="">'."\r\n";
+        }
+        return $txt_str; 
+
+    }
+
+
     private static function getTextarea($name, $table){
         [$field_id, $label, $model] = self::getLabels($name, $table);
         $txt_str = "\n".'             <div class="field">'."\n";
@@ -478,7 +759,8 @@ class Bulma {
         $txt_str .= '                   <div class="control">'."\n";
         $txt_str .= '                       <textarea id="'.$field_id.'" name="'.$field_id.'"';
         if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
-        $txt_str .= ' class="textarea"></textarea>'."\n";
+        $txt_str .= ' class="textarea"';
+        $txt_str .= '></textarea>'."\n";
         $txt_str .= '                   </div>'."\n";
         $txt_str .= '                 </div>'."\n";
         return $txt_str;
@@ -489,6 +771,7 @@ class Bulma {
         $btn_str .= '            <p class="control">'."\n";
         $btn_str .= '              <button ';
         if (self::$jsapp == "ng") { $btn_str .= 'type="button" ng-click="save'.ucwords($tbl).'()"'; };
+
         $btn_str .= ' class="button is-primary">'."\n";
         $btn_str .= '                Submit'."\n";
         $btn_str .= '              </button>'."\n";
