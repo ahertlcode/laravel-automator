@@ -273,7 +273,7 @@ class Bulma {
         $sbody .= '                  <div class="columns is-flex is-flex-direction-column box">'."\n";
         $sbody .='               <h3 class="is-size-3 has-text-centered has-text-primary has-text-weight-bold">Sign In</h3>'."\n";
         $sbody .= '                      <div class="column">'."\n";
-        $sbody .= '                          <label for="username">Username:</label>'."\n";
+        $sbody .= '                          <label for="username">Email:</label>'."\n";
         $sbody .= '                          <input id="email" name="email" ng-model="users.email" class="input is-primary" type="text" placeholder="Enter your username">'."\n";
         $sbody .= '                      </div>'."\n";
         $sbody .= '                      <div class="column">'."\n";
@@ -453,7 +453,7 @@ class Bulma {
         $lbodyo .= '           <div class="container">'."\n";
         $lbodyo .= '               <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
         $lbodyo .= '                   <div class="navbar-brand">'."\n";
-        $lbodyo .= '                       <a class="navbar-item" href="/">'."\n";
+        $lbodyo .= '                       <a class="navbar-item" href="#">'."\n";
         $lbodyo .= '                           <h3>'.ucfirst($dbname).'</h3>'."\n";
         $lbodyo .= '                       </a>'."\n";
         $lbodyo .= '                       <a role="button" href="javascript:void(0);" class="navbar-burger" aria-label="menu" aria-expanded="false" onclick="myFunction()">'."\n";

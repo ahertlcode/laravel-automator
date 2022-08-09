@@ -151,7 +151,10 @@ class AngularApp {
         $jstr .='    this.'.$tb.' = { ';
         $jstr .= self::get_tab_string($tb);
         $jstr .='};'."\r\n\n\n";
-
+        $jstr .= '    let headers = {'."\n";
+        $jstr .= '        "Content-Type":"application/json",'."\n";
+        $jstr .= '        "Accept":"application/json",'."\n";
+        $jstr .= '    };'."\n\n";
         $jstr .= '    $scope.sign_up = function() {'."\r\n";
         $jstr .='        $http({'."\r\n";
         $jstr .='            url: base_api_url+"/auth/register",'."\r\n";
@@ -159,7 +162,7 @@ class AngularApp {
         $jstr .='            data:this.'.$tb.','."\r\n";
         $jstr .='        }).then((result) =>{'."\r\n";
         $jstr .='            $scope.info = result.message;'."\r\n";
-        $jstr .='            window.location.href("../login.html");'."\r\n";
+        $jstr .='            window.location.assign("../resources/login.html");'."\r\n";
         $jstr .='        }, function(error){'."\r\n";
         $jstr .='            $scope.error = error.statusText;'."\r\n";
         $jstr .='        });'."\r\n";
@@ -186,7 +189,10 @@ class AngularApp {
         $jstr ="//javascript file for Sign Up using angularjs for data-binding.\r\n";
         $jstr .='app.controller ('."'".$tb."Ctrl'".', function($scope, $http) {'."\r\n\r\n";
         $jstr .='    this.users = { email: "", password: "" }'."\r\n";
-
+        $jstr .= '    let headers = {'."\n";
+        $jstr .= '        "Content-Type":"application/json",'."\n";
+        $jstr .= '        "Accept":"application/json",'."\n";
+        $jstr .= '    };'."\n\n";
 
         $jstr .= '    $scope.sign_in = function() {'."\r\n";
         $jstr .='        $http({'."\r\n";
@@ -196,7 +202,7 @@ class AngularApp {
         $jstr .='        }).then((result) =>{'."\r\n";
         $jstr .='            $scope.info = result.message;'."\r\n";
         $jstr .='            local_store("add", "'.$dbname.'User", { token: result.access_token});'."\r\n";
-        $jstr .='            window.location.replace("../views/dashboard.html");'."\r\n";
+        $jstr .='            window.location.replace("../resources/views/dashboard.html");'."\r\n";
         $jstr .='        }, function(error){'."\r\n";
         $jstr .='            $scope.error = error.statusText;'."\r\n";
         $jstr .='        });'."\r\n";
