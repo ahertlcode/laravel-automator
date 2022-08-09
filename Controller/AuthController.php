@@ -23,7 +23,7 @@ class AuthController extends Controller{
         $user = User::create($attr);
 
         return $this->success([
-            'token' => $user->createToken('API Token')->plainTexttoken
+            'token' => $user->createToken('API Token')->plainTextToken
         ]);
     }
 
