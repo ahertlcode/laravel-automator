@@ -475,7 +475,7 @@ class Bulma {
         $lbodyo .= '                       <ul class="menu-list">'."\n";
         foreach ($tables as $tbl) {
             $lbodyo .= '                       <li>'."\n";
-            $lbodyo .= '                           <a href="#!/'.$tbl.'">'."\n";
+            $lbodyo .= '                           <a href="../views/'.$tbl.'">'."\n";
             $lbodyo .= '                               '.$tbl.'    '."\n";
             $lbodyo .= '                           </a>'."\n";
             $lbodyo .= '                       </li>'."\n";
@@ -715,6 +715,11 @@ class Bulma {
     }
 
     private static function getSelectField($name, $table){
+        global $app_dir;
+        $fkey = self::$dbh->getFkeys($table, $name);
+    
+        $ref_table =  ($fkey!=null) ? $fkey[0]["REFERENCED_TABLE_NAME"] : null;
+        $ref_file = $app_dir."/resources/views/$ref_table/".Inflect::singularize($ref_table).".html";
         [$field_id, $label, $model] = self::getLabels($name, $table);
         $new_label = ucwords(str_replace(" id", "", strtolower($label)));
         $items = Inflect::pluralize(strtolower(str_replace(" ","_",trim($new_label))));
@@ -728,7 +733,7 @@ class Bulma {
         $select_str .= '                    </select>'."\n";
         $select_str .= '                </div>'."\n";
         $select_str .= '             </div>'."\n";
-        $select_str .= '             <a onclick="doPop(\'\',\'\');" class="btn"><i class="fa fa-plus fa-2x"></i></a>'."\n";
+        $select_str .= '             <a onclick="doPop(\'Add '.ucwords(Inflect::singularize($ref_table)).'\',\''.$ref_file.'\');" class="btn"><i class="fa fa-plus fa-2x"></i></a>'."\n";
         return $select_str;
     }
 
