@@ -137,19 +137,19 @@ class Bulma {
         $routeStr .= '    $routeProvider'."\r\n";
         foreach($tables as $table) {
             $routeStr .= '    .when("/'.$table.'", {'."\r\n";
-            $routeStr .= '        templateUrl: "views/'.$table.'/'.$table.'.html",'."\r\n";
+            $routeStr .= '        templateUrl: "'.$table.'/'.$table.'.html",'."\r\n";
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
             $routeStr .= '    })'."\r\n";
             $routeStr .= '    .when("/'.Inflect::singularize($table).'", {'."\r\n";
-            $routeStr .= '        templateUrl: "views/'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
+            $routeStr .= '        templateUrl: "'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
             $routeStr .= '    })'."\r\n";
             $routeStr .= '    .when("/'.Inflect::singularize($table).'/edit/:id", {'."\r\n";
-            $routeStr .= '        templateUrl: "views/'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
+            $routeStr .= '        templateUrl: "'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
             $routeStr .= '    })'."\r\n";
             $routeStr .= '    .when("/'.Inflect::singularize($table).'/view/:id", {'."\r\n";
-            $routeStr .= '        templateUrl: "views/'.$table.'/'.Inflect::singularize($table).'_view.html",'."\r\n";
+            $routeStr .= '        templateUrl: "'.$table.'/'.Inflect::singularize($table).'_view.html",'."\r\n";
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
             $routeStr .= '    })'."\r\n";
         }
