@@ -202,11 +202,11 @@ class Bulma {
         $snippetStr .='        $(".modal-card-title").html(title);'."\n";
         $snippetStr .='        $(".modal-card-body").load(content);'."\n";
         $snippetStr .='        $(".modal").toggleClass("is-active");'."\n";
-        $snippetStr .='      }'."\n";
+        $snippetStr .='    }'."\n";
         return $snippetStr;
     }
 
-    private static function getscripts($tbi, $rty = null){
+    private static function getscripts($tbi, $rty = null, $location=null){
         $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular.min.js"></script>';
         $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular-route.min.js"></script>';
@@ -234,9 +234,13 @@ class Bulma {
         $html_body .= "\r\n               ".'} ';
         $html_body .= "\r\n         ".'}';
         $html_body .= "\r\n     ".'</script>'."\n";    
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript">'."\n";
-        $html_body .='  '.self::getSnippet();
-        $html_body .= "\r\n    ".'</script>';
+       
+        if ($location == "landingPage") {
+            $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript">'."\n";
+            $html_body .='        '.self::getSnippet();
+            $html_body .= "\r\n    ".'</script>';
+        }
+        
         return $html_body;
     }
 
@@ -475,7 +479,7 @@ class Bulma {
         $lbodyo .= '                       <ul class="menu-list">'."\n";
         foreach ($tables as $tbl) {
             $lbodyo .= '                       <li>'."\n";
-            $lbodyo .= '                           <a href="../views/'.$tbl.'">'."\n";
+            $lbodyo .= '                           <a href="#!/'.$tbl.'">'."\n";
             $lbodyo .= '                               '.$tbl.'    '."\n";
             $lbodyo .= '                           </a>'."\n";
             $lbodyo .= '                       </li>'."\n";
@@ -490,7 +494,7 @@ class Bulma {
         $lbodyo .= '            </section>'."\n";
         $lbodyo .= '        </div>'."\n";
         $lbodyo .= self::getModal();
-        $lscripts = self::getscripts($tables);
+        $lscripts = self::getscripts($tables,null,'landingPage');
         $lfooter = "\n\n".'   </body>'."\n";
         $lfooter .= '</html>'."\n";
         $lbody = $lheaders.$lbodyo.$lscripts.$lfooter;
@@ -719,7 +723,7 @@ class Bulma {
         $fkey = self::$dbh->getFkeys($table, $name);
     
         $ref_table =  ($fkey!=null) ? $fkey[0]["REFERENCED_TABLE_NAME"] : null;
-        $ref_file = $app_dir."/resources/views/$ref_table/".Inflect::singularize($ref_table).".html";
+        $ref_file = "$ref_table/".Inflect::singularize($ref_table).".html";
         [$field_id, $label, $model] = self::getLabels($name, $table);
         $new_label = ucwords(str_replace(" id", "", strtolower($label)));
         $items = Inflect::pluralize(strtolower(str_replace(" ","_",trim($new_label))));

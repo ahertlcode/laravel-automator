@@ -111,7 +111,8 @@ class DbHandlers
         $this->conn = null;
     }
     
-    public function getFkeys($current_table="", $current_column="", $ref_table="", $ref_column="") {
+    public function getFkeys($current_db="", $current_table="", $current_column="", $ref_table="", $ref_column="") {
+        $dbQuery = ($current_db != "") ? "AND (table_schema='$current_db')" : "";
         $tableQuery = ($current_table != "") ? "AND (table_name='$current_table')" : "";
         $columnQuery = ($current_column != "") ? "AND (column_name = '$current_column')" : "";
         $refTableQuery = ($ref_table != "") ? "AND (referenced_table_name='$ref_table')" : "";
@@ -119,7 +120,7 @@ class DbHandlers
 
         $query = "SELECT table_name, column_name, referenced_table_name, referenced_column_name";
         $query .= " FROM information_schema.key_column_usage WHERE (referenced_table_name IS NOT NULL)";
-        $query .= " $tableQuery $columnQuery $refTableQuery $refColumnQuery";
+        $query .= " $dbQuery $tableQuery $columnQuery $refTableQuery $refColumnQuery";
         $fkeys = ($query != "") ? $this->getRowAssoc($query) : "";
 
         return $fkeys;

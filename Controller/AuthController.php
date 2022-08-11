@@ -43,6 +43,20 @@ class AuthController extends Controller{
         ]);
     }
 
+    public function request_password_reset(Request $request) {
+        $attr = $request->validate([
+            'email' => 'required|string|email'
+        ]);
+
+        $user = User::find([
+            'email' => $request->email
+        ])->get();
+
+        if ($user) {
+            //add send mail function here.
+        }
+    }
+
     public function logout(){
         auth()->user()->tokens()->delete();
 

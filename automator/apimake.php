@@ -35,12 +35,16 @@ class Apimake
                 $artisan_cmd = "php artisan make:controller ".$obj['controller']." --model=".$obj['model'];
                 exec("cd $app_dir && $artisan_cmd");
             } else {
-                $artisan_cmd = "php artisan make:model ".$obj["model"]." -cr";
-                exec("cd $app_dir && $artisan_cmd");
+                if (!in_array($tbl, $this->excludeTables)) {
+                    $artisan_cmd = "php artisan make:model ".$obj["model"]." -cr";
+                    exec("cd $app_dir && $artisan_cmd");
+                }
             }
 
-            $this->touchModel($obj['model'], $tbl);
-            $this->touchController($obj['controller'], $tbl);
+            if (!in_array($tbl, $this->excludeTables)) {
+                $this->touchModel($obj['model'], $tbl);
+                $this->touchController($obj['controller'], $tbl);
+            }
         }
         $this->touchRoute();
         $this->touchEnv();
@@ -124,8 +128,8 @@ class Apimake
         if (!strpos($modelstr, 'use Auth;') && $model != 'User') $modelstr .= "\r\n".'use Auth;'."\r\n"; 
         $props = $this->getFields($table);
         $modelstr .= "\r\n\r\n\r\n";
-        if ($model != 'User') $modelstr .= "class ".$model." extends Model\n{\n";
-        if ($model == 'User')  $modelstr .= "class ".$model." extends Authenticatable\n{\n    use HasApiTokens;\n";
+        if ($model != 'User') $modelstr .= "class ".$model." extends Model\n{\n    use HasFactory;\n";
+        if ($model == 'User')  $modelstr .= "class ".$model." extends Authenticatable implements MustVerifyEmail, Notifiable\n{\n    use HasFactory;\n    use HasApiTokens;\n";
         $modelstr .= '    protected $table="'.$table.'";'."\r\n";
         foreach($this->con->tableDesc($table) as $field) {
             if ($field['Key'] == 'PRI') $modelstr .= '    protected $primaryKey="'.$field['Field'].'";'."\r\n";
@@ -147,15 +151,17 @@ class Apimake
         $modelstr .= '    protected $hidden = [';
         $fite = 0;
         foreach($props['hidden'] as $item){
-            if($fite < sizeof($props['fillable'])-1){
+            if($fite < sizeof($props['hidden'])-1){
                 $modelstr .= "'".$item."',";
             }else{
                 $modelstr .= "'".$item."'";
             }
+            $fite += 1;
         }
         $modelstr .= "];\r\n\r\n";
-        $this->dorelation($props['foreignKey']);
-        $modelstr .= $this->relations;
+        $fkeys = $this->getTableFkeys($table);
+        if ($fkeys != null) $this->dorelation($fkeys);
+        if ($this->relations != "") $modelstr .= $this->relations;
         $modelstr .= "\n}";
         file_put_contents($app_dir."/app/Models/".$model.".php", $modelstr);
     }
@@ -165,9 +171,12 @@ class Apimake
         $props = $this->getFields($table);
         $cols = $props['fillable'];
         $ctrlstr = explode("class", file_get_contents($app_dir."/app/Http/Controllers/".$controller.".php"))[0];
-        foreach($props['foreignKey'] as $fkey) {
-            $insertmodel = 'use App\Models\\'.$this->getModel($fkey['REFERENCED_TABLE_NAME'])['model'].';';
-            if (!strpos($ctrlstr, $insertmodel)) $ctrlstr .= $insertmodel."\r\n";
+        $fkeys = $this->getTableFkeys($table);
+        if ($fkeys != null) {
+            foreach($fkeys as $fkey) {
+                $insertmodel = 'use App\Models\\'.$this->getModel($fkey['REFERENCED_TABLE_NAME'])['model'].';';
+                if (!strpos($ctrlstr, $insertmodel)) $ctrlstr .= $insertmodel."\r\n";
+            }
         }
         if (!strpos($ctrlstr, 'use App\Traits\ApiResponser;')) $ctrlstr .= 'use App\Traits\ApiResponser;'."\r\n";
         if (!strpos($ctrlstr, 'use Auth;')) $ctrlstr .= "use Auth;\n\n";
@@ -192,16 +201,27 @@ class Apimake
         $hfield = array();
         $sql = "desc ".$tbl;
         $struct = $this->con->tableDesc($tbl);
-        $fkeys = $this->con->getFkeys($tbl);
+       
         foreach($struct as $field){
-            if (!in_array($field['Field'], $this->excludeColumns) && $field['Field'] != 'password') $fields[] = $field["Field"];
+            if (!in_array($field['Field'], $this->excludeColumns)) $fields[] = $field["Field"];
             if (in_array($field['Field'], $this->excludeColumns)) $hfield[] = $field['Field'];
         }
-        return ['fillable'=>$fields, 'hidden'=>$hfield, 'foreignKey'=>$fkeys];
+        return ['fillable'=>$fields, 'hidden'=>$hfield];
+    }
+
+    private function getTableFkeys($tbl) {
+        global $dbname;
+        $foreignKeys = array();
+        $tsql = "desc ".$tbl;
+        $cols = $this->con->tableDesc($tbl);
+        foreach($cols as $col) {
+            if ($col['Key'] == "MUL") $foreignKeys = array_merge($foreignKeys, $this->con->getFkeys($dbname, $tbl, $col['Field']));
+        }
+        if (count($foreignKeys) > 0) return $foreignKeys;
+        return null;
     }
 
     private function dorelation($fkeys){
-
         foreach($fkeys as $fkey) {
             $model = $this->getModel($fkey['REFERENCED_TABLE_NAME'])['model'];
             $col = $fkey['COLUMN_NAME'];
@@ -225,17 +245,19 @@ class Apimake
     private function getIndexFunct($table){
         $functstr = "    /**\n     * Display a listing of the resource.\n     *\n     * @return \Illuminate\Http\Response\n     */\n";
         $model = $this->getModel($table)['model'];
-        $fkeys = $this->getFields($table)['foreignKey'];
+        $fkeys = $this->getTableFkeys($table); //$this->getFields($table)['foreignKey'];
         $functstr .= "    public function index()\n    {\n";
         $functstr .= '        $'.$table.'  = '.$model.'::where("user_id", $this->getDataOwner()->id)->get();'."\r\n";
-        if (count($fkeys)>0) {
-            $functstr .= '        $pointer = 0;'."\r\n";
-            $functstr .= '        foreach($'.$table.' as $'.Inflect::singularize($table).') {'."\n";
-            foreach($fkeys as $fkey) {
-                $functstr .= '            $'.$table.'[$pointer]["'.Inflect::singularize($fkey["REFERENCED_TABLE_NAME"]).'"] = $'.Inflect::singularize($table).'->'.$fkey['REFERENCED_TABLE_NAME'].'();'."\n";
+        if ($fkeys != null) {
+            if (count($fkeys)>0) {
+                $functstr .= '        $pointer = 0;'."\r\n";
+                $functstr .= '        foreach($'.$table.' as $'.Inflect::singularize($table).') {'."\n";
+                foreach($fkeys as $fkey) {
+                    $functstr .= '            $'.$table.'[$pointer]["'.Inflect::singularize($fkey["REFERENCED_TABLE_NAME"]).'"] = $'.Inflect::singularize($table).'->'.$fkey['REFERENCED_TABLE_NAME'].'();'."\n";
+                }
+                $functstr.= '            $pointer++;'."\r\n";
+                $functstr .= '        }'."\n";
             }
-            $functstr.= '            $pointer++;'."\r\n";
-            $functstr .= '        }'."\n";
         }
         $functstr .= '        return $this->success($'.$table.', "'.ucfirst($table).' retrieved!", 200);'."\r\n";
         $functstr .= "\n    }\n\n";
