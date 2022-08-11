@@ -185,16 +185,16 @@ class Bulma {
         $lheaders .= "    <head>\r\n      <title>".ucfirst($dbname)."&reg;::Portal</title>\r\n";
         $lheaders .= '        <meta content="text/html" charset="utf-8" >'."\r\n";
         $lheaders .= '        <meta name="viewport" content="width=device-width, initial-scale=1">'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/bulma.min.css">'."\r\n";
-        //$lheaders .= '        <link rel="stylesheet" href="css/jquery-ui.css" >'."\r\n";
-       // $lheaders .= '        <link rel="stylesheet" href="css/jquery.datepick.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/fontawesome-all.min.css" >'."\r\n";
         if ($isDash) {
-            $lheaders .= '        <link rel="stylesheet" href="css/custom/uploadfile.css" >'."\r\n";
-            $lheaders .= '        <link rel="stylesheet" href="css/custom/slide-menu.css" >'."\r\n";
-            $lheaders .= '        <link rel="stylesheet" href="css/custom/table-header.css" >'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="../css/bulma.min.css">'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="../css/fontawesome-all.min.css" >'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="../css/custom/uploadfile.css" >'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="../css/custom/slide-menu.css" >'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="../css/custom/table-header.css" >'."\r\n";
+        } else {
+            $lheaders .= '        <link rel="stylesheet" href="css/bulma.min.css">'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="css/fontawesome-all.min.css" >'."\r\n";
         }
-        //$lheaders .= '        <link rel="stylesheet" href="css/custom/view.css" >'."\r\n";
         $lheaders .= "    </head>";
         return $lheaders;
     }
@@ -209,41 +209,40 @@ class Bulma {
     }
 
     private static function getscripts($tbi, $rty = null, $location=null){
-        $html_body = "\r\n    ".'<script  src="js/jquery.min.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/angular.min.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/angular-route.min.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/jquery-ui.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/jquery.datepick.min.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/jquery.table2excel.min.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/jquery.uploadfile.min.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/utility.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/autocomplete.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/route.js"></script>';
-        $html_body .= "\r\n    ".'<script  src="js/bundle.js"></script>';
+        if ($location == "landingPage") {
+            $html_body = "\r\n    ".'<script  src="../js/jquery.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/angular.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/angular-route.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/jquery-ui.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/jquery.datepick.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/jquery.table2excel.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/jquery.uploadfile.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/utility.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/autocomplete.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/route.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/bundle.js"></script>';
+            $html_body .= "\r\n    ".'<script>'."\n";
+            $html_body .='        '.self::getSnippet();
+            $html_body .= "\r\n    ".'</script>';
+        } else {
+            $html_body = "\r\n    ".'<script  src="js/jquery.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/angular.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/angular-route.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/jquery-ui.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/jquery.datepick.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/jquery.table2excel.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/jquery.uploadfile.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/utility.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/autocomplete.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/route.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/bundle.js"></script>';
+        }
+
         if ($rty == 'signup') {
             $html_body .= "\r\n    ".'<script  src="js/signup.js"></script>';
         }
         if ($rty == 'signin') {
             $html_body .= "\r\n    ".'<script  src="js/signin.js"></script>';
-        }
-
-        /*
-        $html_body .= "\r\n    ".'<script>'."\n";
-        $html_body .= "\r\n         ".'function myFunction() {'."\n";
-        $html_body .= "\r\n               ".'var x = document.getElementById("myLinks");';
-        $html_body .= "\r\n               ".'if (x.style.display === "block") {';
-        $html_body .= "\r\n               ".'    x.style.display = "none"; ';
-        $html_body .= "\r\n               ".'} else {';
-        $html_body .= "\r\n               ".'    x.style.display = "block"; ';
-        $html_body .= "\r\n               ".'} ';
-        $html_body .= "\r\n         ".'}';
-        $html_body .= "\r\n     ".'</script>'."\n";
-        */    
-       
-        if ($location == "landingPage") {
-            $html_body .= "\r\n    ".'<script>'."\n";
-            $html_body .='        '.self::getSnippet();
-            $html_body .= "\r\n    ".'</script>';
         }
         
         return $html_body;
@@ -521,7 +520,7 @@ class Bulma {
         
         utilities::xcopy('automator/css/', $app_dir.'/resources/css');
         utilities::xcopy('automator/js/', $app_dir.'/resources/js');
-        utilities::xcopy('automator/css/webfonts/', $app_dir.'/resources/css/webfonts');
+        utilities::xcopy('automator/webfonts/', $app_dir.'/resources/webfonts');
         utilities::xcopy('automator/ckeditor/', $app_dir.'/resources/ckeditor');
     }
 
