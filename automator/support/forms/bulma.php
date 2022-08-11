@@ -179,20 +179,22 @@ class Bulma {
         }
     }
 
-    private static function headerFile() {
+    private static function headerFile($isDash = false) {
         global $dbname;
         $lheaders = "<!DOCTYPE html>\r\n".'  <html lang="en">'."\r\n";
         $lheaders .= "    <head>\r\n      <title>".ucfirst($dbname)."&reg;::Portal</title>\r\n";
         $lheaders .= '        <meta content="text/html" charset="utf-8" >'."\r\n";
         $lheaders .= '        <meta name="viewport" content="width=device-width, initial-scale=1">'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="css/bulma.min.css">'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/jquery-ui.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/jquery.datepick.css" >'."\r\n";
+        //$lheaders .= '        <link rel="stylesheet" href="css/jquery-ui.css" >'."\r\n";
+       // $lheaders .= '        <link rel="stylesheet" href="css/jquery.datepick.css" >'."\r\n";
         $lheaders .= '        <link rel="stylesheet" href="css/fontawesome-all.min.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/custom/uploadfile.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/custom/slide-menu.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/custom/table-header.css" >'."\r\n";
-        $lheaders .= '        <link rel="stylesheet" href="css/custom/view.css" >'."\r\n";
+        if ($isDash) {
+            $lheaders .= '        <link rel="stylesheet" href="css/custom/uploadfile.css" >'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="css/custom/slide-menu.css" >'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="css/custom/table-header.css" >'."\r\n";
+        }
+        //$lheaders .= '        <link rel="stylesheet" href="css/custom/view.css" >'."\r\n";
         $lheaders .= "    </head>";
         return $lheaders;
     }
@@ -207,23 +209,25 @@ class Bulma {
     }
 
     private static function getscripts($tbi, $rty = null, $location=null){
-        $html_body = "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/angular-route.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery-ui.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.datepick.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.table2excel.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/jquery.uploadfile.min.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/utility.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/autocomplete.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/route.js"></script>';
-        $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/bundle.js"></script>';
+        $html_body = "\r\n    ".'<script  src="js/jquery.min.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/angular.min.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/angular-route.min.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/jquery-ui.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/jquery.datepick.min.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/jquery.table2excel.min.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/jquery.uploadfile.min.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/utility.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/autocomplete.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/route.js"></script>';
+        $html_body .= "\r\n    ".'<script  src="js/bundle.js"></script>';
         if ($rty == 'signup') {
-            $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/signup.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/signup.js"></script>';
         }
         if ($rty == 'signin') {
-            $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript" src="js/signin.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/signin.js"></script>';
         }
+
+        /*
         $html_body .= "\r\n    ".'<script>'."\n";
         $html_body .= "\r\n         ".'function myFunction() {'."\n";
         $html_body .= "\r\n               ".'var x = document.getElementById("myLinks");';
@@ -233,10 +237,11 @@ class Bulma {
         $html_body .= "\r\n               ".'    x.style.display = "block"; ';
         $html_body .= "\r\n               ".'} ';
         $html_body .= "\r\n         ".'}';
-        $html_body .= "\r\n     ".'</script>'."\n";    
+        $html_body .= "\r\n     ".'</script>'."\n";
+        */    
        
         if ($location == "landingPage") {
-            $html_body .= "\r\n    ".'<script language="javascript" type="text/javascript">'."\n";
+            $html_body .= "\r\n    ".'<script>'."\n";
             $html_body .='        '.self::getSnippet();
             $html_body .= "\r\n    ".'</script>';
         }
@@ -275,7 +280,7 @@ class Bulma {
         $sbody .= '          <div class="hero is-fullheight">'."\n";
         $sbody .= '              <div class="hero-body is-justify-content-center is-align-items-center">'."\n";
         $sbody .= '                  <div class="columns is-flex is-flex-direction-column box">'."\n";
-        $sbody .='               <h3 class="is-size-3 has-text-centered has-text-primary has-text-weight-bold">Sign In</h3>'."\n";
+        $sbody .='                       <h3 class="is-size-3 has-text-centered has-text-primary has-text-weight-bold">Sign In</h3>'."\n";
         $sbody .= '                      <div class="column">'."\n";
         $sbody .= '                          <label for="username">Email:</label>'."\n";
         $sbody .= '                          <input id="email" name="email" ng-model="users.email" class="input is-primary" type="text" placeholder="Enter your username">'."\n";
@@ -452,9 +457,9 @@ class Bulma {
     private static function makeLandingPage($tables) {
         global $dbname;
         global $app_dir;
-        $lheaders = self::headerFile();
+        $lheaders = self::headerFile(true);
         $lbodyo = "\r\n    ".' <body ng-app="'.$dbname.'App">'."\r\n";
-        $lbodyo .= '           <div class="container">'."\n";
+        $lbodyo .= '           <div class="container-fluid">'."\n";
         $lbodyo .= '               <nav class="navbar" role="navigation" aria-label="main navigation">'."\n";
         $lbodyo .= '                   <div class="navbar-brand">'."\n";
         $lbodyo .= '                       <a class="navbar-item" href="#">'."\n";
@@ -474,8 +479,8 @@ class Bulma {
         $lbodyo .= '                   </div>'."\n";
         $lbodyo .= '               </nav>'."\n";
         $lbodyo .= '               <section class="main-content columns is-fullheight">'."\n";
-        $lbodyo .= '                   <aside class="column is-2 is-narrow-mobile is-fullheight section" id="myLinks">'."\n";
-        $lbodyo .= '                       <p class="menu-label is-hidden-touch">Navigation</p>'."\n";
+        $lbodyo .= '                   <aside class="column is-2 is-narrow-mobile is-fullheight p-2 is-dark">'."\n";
+        $lbodyo .= '                       <!--<p class="menu-label is-hidden-touch">Navigation</p>-->'."\n";
         $lbodyo .= '                       <ul class="menu-list">'."\n";
         foreach ($tables as $tbl) {
             $lbodyo .= '                       <li>'."\n";
@@ -488,8 +493,6 @@ class Bulma {
         $lbodyo .= '                </aside>'."\n";
         $lbodyo .= '                <div class="container column is-10">'."\n";
         $lbodyo .= '                    <div ng-view></div>'."\r\n";
-        //$lbodyo .= '                    <div class="section">'."\n";
-        //$lbodyo .= '                    </div>'."\n";
         $lbodyo .= '                </div>'."\n";
         $lbodyo .= '            </section>'."\n";
         $lbodyo .= '        </div>'."\n";
