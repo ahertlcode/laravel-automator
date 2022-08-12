@@ -122,7 +122,6 @@ class DbHandlers
         $query .= " FROM information_schema.key_column_usage WHERE (referenced_table_name IS NOT NULL)";
         $query .= " $dbQuery $tableQuery $columnQuery $refTableQuery $refColumnQuery";
         $fkeys = ($query != "") ? $this->getRowAssoc($query) : "";
-
         return $fkeys;
     }
 

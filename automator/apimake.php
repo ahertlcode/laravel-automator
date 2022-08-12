@@ -129,7 +129,7 @@ class Apimake
         $props = $this->getFields($table);
         $modelstr .= "\r\n\r\n\r\n";
         if ($model != 'User') $modelstr .= "class ".$model." extends Model\n{\n    use HasFactory;\n";
-        if ($model == 'User')  $modelstr .= "class ".$model." extends Authenticatable implements MustVerifyEmail, Notifiable\n{\n    use HasFactory;\n    use HasApiTokens;\n";
+        if ($model == 'User')  $modelstr .= "class ".$model." extends Authenticatable implements MustVerifyEmail\n{\n    use HasFactory;\n    use HasApiTokens;\n";
         $modelstr .= '    protected $table="'.$table.'";'."\r\n";
         foreach($this->con->tableDesc($table) as $field) {
             if ($field['Key'] == 'PRI') $modelstr .= '    protected $primaryKey="'.$field['Field'].'";'."\r\n";

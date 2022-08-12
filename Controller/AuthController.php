@@ -24,7 +24,7 @@ class AuthController extends Controller{
 
         return $this->success([
             'token' => $user->createToken('API Token')->plainTextToken
-        ]);
+        ],'User registration successful!');
     }
 
     public function login(Request $request){
@@ -36,11 +36,11 @@ class AuthController extends Controller{
         if (!Auth::attempt($attr)) {
             return $this->error('Credential mismatch', 401);
         }
-        auth()->user()->is_online = 1;
-        auth()->user()->save();
+        //auth()->user()->is_online = 1;
+        //auth()->user()->save();
         return $this->success([
             'token' => auth()->user()->createToken('API Token')->plainTextToken
-        ]);
+        ],'Login successful!');
     }
 
     public function request_password_reset(Request $request) {

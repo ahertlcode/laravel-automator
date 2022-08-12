@@ -200,9 +200,11 @@ class AngularApp {
         $jstr .='            method: "POST",'."\r\n";
         $jstr .='            data:this.users,'."\r\n";
         $jstr .='        }).then((result) =>{'."\r\n";
-        $jstr .='            $scope.info = result.message;'."\r\n";
-        $jstr .='            local_store("add", "'.$dbname.'User", { token: result.access_token});'."\r\n";
-        $jstr .='            window.location.replace("../resources/views/dashboard.html");'."\r\n";
+        $jstr .='            $scope.info = result.data.message;'."\r\n";
+        $jstr .='            local_store("add", "'.$dbname.'User", { token: result.data.data.token});'."\r\n";
+        $jstr .='            setTimeout(() => {'."\n";
+        $jstr .='                window.location.replace("views/dashboard.html");'."\r\n";
+        $jstr .='            }, 500);'."\n\r";
         $jstr .='        }, function(error){'."\r\n";
         $jstr .='            $scope.error = error.statusText;'."\r\n";
         $jstr .='        });'."\r\n";
@@ -228,9 +230,6 @@ class AngularApp {
         global $app_dir, $dbname;
         $tbj = Inflect::singularize($tb);
         $jstr ="//javascript file for ".$tb." using angularjs for data-binding.\r\n";
-        //$jstr .='var base_api_url = "http://localhost:8085/'.$jdb->dbname.'/api/";'."\r\n";
-        //$jstr .='var user = local_store({}, "'.$tb.'User", "get");'."\r\n";
-        //$jstr .="var app = angular.module('".$tb."View', []);\r\n\r\n";
         $jstr .='app.controller ('."'".$tb."Ctrl'".', function($scope, $http) {'."\r\n\r\n";
         $jstr .='    this.'.$tbj.' = { ';
         $jstr .= self::get_tab_string($tb);

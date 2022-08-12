@@ -128,11 +128,28 @@ class Bulma {
         }
     }
 
-    private static function makeAngularRoute($tables) {
-        global $dbname, $app_dir;
-        //$db = Inflect::singularize($dbname);
+    private static function indexJsFile() {
+        global $dbname,$app_dir;
         $routeStr = 'var base_api_url = "http://localhost:8000/api";'."\r\n";
         $routeStr .= 'var app = angular.module("'.$dbname.'App", ["ngRoute"]);'."\r\n";
+        $file_dir = $app_dir."/resources/js";
+        $routefile = $app_dir."/resources/js/index.js";
+        if(is_readable($routefile)){
+            file_put_contents($routefile, $routeStr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/js/");
+            $fp = fopen($routefile,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($routefile, $routeStr);
+        }
+    }
+
+    private static function makeAngularRoute($tables) {
+        global $dbname, $app_dir;
+        self::indexJsFile();
+        $routeStr = "";
         $routeStr .= 'app.config(function($routeProvider) {'."\r\n";
         $routeStr .= '    $routeProvider'."\r\n";
         foreach($tables as $table) {
@@ -187,6 +204,7 @@ class Bulma {
         $lheaders .= '        <meta name="viewport" content="width=device-width, initial-scale=1">'."\r\n";
         if ($isDash) {
             $lheaders .= '        <link rel="stylesheet" href="../css/bulma.min.css">'."\r\n";
+            $lheaders .= '        <link rel="stylesheet" href="../css/jquery-ui.css">'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/fontawesome-all.min.css" >'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/custom/uploadfile.css" >'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/custom/slide-menu.css" >'."\r\n";
@@ -200,42 +218,39 @@ class Bulma {
     }
 
     private static function  getSnippet() {
-        $snippetStr ='    doPop = (title, content) => {'."\n";
-        $snippetStr .='        $(".modal-card-title").html(title);'."\n";
-        $snippetStr .='        $(".modal-card-body").load(content);'."\n";
-        $snippetStr .='        $(".modal").toggleClass("is-active");'."\n";
-        $snippetStr .='    }'."\n";
+        $snippetStr ='doPop = (title, content) => {'."\n";
+        $snippetStr .='            $(".modal-card-title").html(title);'."\n";
+        $snippetStr .='            $(".modal-card-body").load(content);'."\n";
+        $snippetStr .='            $(".modal").toggleClass("is-active");'."\n";
+        $snippetStr .='        }'."\n";
+        $snippetStr .= '        $($(".delete")[0]).on("click", (e) => { $(".modal").toggleClass("is-active"); })'."\n";
         return $snippetStr;
     }
 
     private static function getscripts($tbi, $rty = null, $location=null){
+        $html_body = "";
         if ($location == "landingPage") {
-            $html_body = "\r\n    ".'<script  src="../js/jquery.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/jquery.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/angular.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/angular-route.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/jquery-ui.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="../js/jquery.datepick.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/jquery.table2excel.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/jquery.uploadfile.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/utility.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/autocomplete.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/index.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/route.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/bundle.js"></script>';
             $html_body .= "\r\n    ".'<script>'."\n";
             $html_body .='        '.self::getSnippet();
-            $html_body .= "\r\n    ".'</script>';
+            $html_body .= "    ".'</script>';
         } else {
-            $html_body = "\r\n    ".'<script  src="js/jquery.min.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/jquery.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="js/angular.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="js/angular-route.min.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="js/jquery-ui.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="js/jquery.datepick.min.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="js/jquery.table2excel.min.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="js/jquery.uploadfile.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="js/utility.js"></script>';
             $html_body .= "\r\n    ".'<script  src="js/autocomplete.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="js/route.js"></script>';
-            $html_body .= "\r\n    ".'<script  src="js/bundle.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="js/index.js"></script>';
         }
 
         if ($rty == 'signup') {
@@ -260,10 +275,7 @@ class Bulma {
                     <section class="modal-card-body">
                         <!-- Content ... -->
                     </section>
-                    <footer class="modal-card-foot">
-                        <button class="button is-success">Save changes</button>
-                        <button class="button">Cancel</button>
-                    </footer>
+                    <footer class="modal-card-foot"></footer>
                 </div>
             </div>
         END;
@@ -353,7 +365,7 @@ class Bulma {
         $form_str .= "\r\n".'        <div class="field">'."\n";
         $form_str .='                 <label class="label" for="password_confirmation">Confirm Password</label>'."\n";
         $form_str .='                 <div class="control">'."\n";
-        $form_str .='                   <input id="password_confirmation" name="password_confirmation" ng-model="users.password_confirmation" class="input" type="text" required>'."\r\n";
+        $form_str .='                   <input id="password_confirmation" name="password_confirmation" ng-model="users.password_confirmation" class="input" type="password" required>'."\r\n";
         $form_str .='                 </div>'."\r\n";
         $form_str .='                </div>'."\r\n";
         $form_str .="\r\n".'<a class="has-text-right is-size-6 is-underlined" href="login.html">Already A member?</a>';
@@ -484,7 +496,7 @@ class Bulma {
         foreach ($tables as $tbl) {
             $lbodyo .= '                       <li>'."\n";
             $lbodyo .= '                           <a href="#!/'.$tbl.'">'."\n";
-            $lbodyo .= '                               '.$tbl.'    '."\n";
+            $lbodyo .= '                               '.ucwords(str_replace('_', " ",$tbl)).'    '."\n";
             $lbodyo .= '                           </a>'."\n";
             $lbodyo .= '                       </li>'."\n";
         }
@@ -518,10 +530,10 @@ class Bulma {
     private static function copy_assets(){
         global $app_dir;
         
-        utilities::xcopy('automator/css/', $app_dir.'/resources/css');
-        utilities::xcopy('automator/js/', $app_dir.'/resources/js');
-        utilities::xcopy('automator/webfonts/', $app_dir.'/resources/webfonts');
-        utilities::xcopy('automator/ckeditor/', $app_dir.'/resources/ckeditor');
+        utilities::xcopy('automator/css', $app_dir.'/resources/css');
+        utilities::xcopy('automator/js', $app_dir.'/resources/js');
+        utilities::xcopy('automator/webfonts', $app_dir.'/resources/webfonts');
+        utilities::xcopy('automator/ckeditor', $app_dir.'/resources/ckeditor');
     }
 
 
@@ -561,10 +573,12 @@ class Bulma {
         global $dbname;
         global $app_dir;
         $filename = Inflect::singularize($table);
+        $addDatePicker = false;
         $form_str = '      <form class="form container" method="POST" enctype="multipart/form-data" ng-controller="'.$table.'Ctrl">'."\n";
         $form_str .= '          <h1 class="title is-3">ADD '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
         foreach($fields as $field){
             $req = false;
+            if (strpos($field['Field'], 'date') > -1) $addDatePicker = true;
             if(strpos($field["Type"], "int")>-1 && $field["Key"]!=="MUL"){
                 if($field["Null"]==="NO") $req = true;
                 $form_str .= "    ".self::getInputField($field["Field"], "number", $table, $req);
@@ -579,6 +593,15 @@ class Bulma {
         }
         $form_str .= self::getButtonGrp($table);
         $form_str .= "      </form>"."\n";
+
+        if ($addDatePicker == true) {
+            $form_str .= "      $( function() {\n\r";
+            $form_str .= "            $( \".datepicker\" ).map((i, item) => {\n\r";
+            $form_str .= "                  $(item).datepicker();\n\r";
+            $form_str .= "            })\n\r";
+            $form_str .= "      } );\n\r";
+        }
+        
         $file_dir = $app_dir."/resources/views/$table";
         $views_file = $app_dir."/resources/views/$table/".Inflect::singularize($table).".html";
         if(is_readable($views_file)){
@@ -646,6 +669,7 @@ class Bulma {
 
     private static function getSUInputField($name, $type, $table, $is_required, $disp=null) {
         [$field_id, $label, $model] = self::getLabels($name, $table);
+        if (strpos($name, 'password') > -1) $type = 'password';
         $input_str = "\n".'         <div class="field" ';
         $input_str .= '>'."\n";
         $input_str .= '            <label class="label">'.$label.'</label>'."\n";
@@ -676,7 +700,9 @@ class Bulma {
         $input_str .= '            <div class="control">'."\n";
         $input_str .= '             <input id="'.$field_id.'" name="'.$field_id.'"';
         if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
-        $input_str.=' class="input" ';
+        $input_str.=' class="input ';
+        if (strpos($name, 'date') > -1) $input_str .= 'datepicker';
+        $input_str.='"';
         if ($disp == null || $disp == 'block') {
             $input_str .= 'type="'.$type.'"';
         }elseif ($disp == 'none') {
@@ -722,10 +748,12 @@ class Bulma {
 
     private static function getSelectField($name, $table){
         global $app_dir;
-        $fkey = self::$dbh->getFkeys($table, $name);
+        global $dbname;
+        $fkey = self::$dbh->getFkeys($dbname, $table, $name);
     
         $ref_table =  ($fkey!=null) ? $fkey[0]["REFERENCED_TABLE_NAME"] : null;
         $ref_file = "$ref_table/".Inflect::singularize($ref_table).".html";
+       
         [$field_id, $label, $model] = self::getLabels($name, $table);
         $new_label = ucwords(str_replace(" id", "", strtolower($label)));
         $items = Inflect::pluralize(strtolower(str_replace(" ","_",trim($new_label))));
@@ -737,9 +765,9 @@ class Bulma {
         $select_str .='>'."\n";
         $select_str .= '                        <option value="-1">Select '.$new_label.'</option>'."\n";
         $select_str .= '                    </select>'."\n";
+        $select_str .= '                    <a onclick="doPop(\'Add '.ucwords(Inflect::singularize(str_replace("_"," ",$ref_table))).'\',\''.$ref_file.'\');" class="btn"><i class="fa fa-plus"></i></a>'."\n";
         $select_str .= '                </div>'."\n";
         $select_str .= '             </div>'."\n";
-        $select_str .= '             <a onclick="doPop(\'Add '.ucwords(Inflect::singularize($ref_table)).'\',\''.$ref_file.'\');" class="btn"><i class="fa fa-plus fa-2x"></i></a>'."\n";
         return $select_str;
     }
 
