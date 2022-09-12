@@ -1,0 +1,28 @@
+<style>
+    .tool-bar{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .tool-bar>*{
+        flex: content;
+        border: 1px solid black;
+        margin: 5px;
+    }
+
+    .others{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 2px 5px;
+        max-height: 30px !important;
+    }
+</style>
+
+<div class="tool-bar">
+    <add-new add-new="$ctrl.ishow();"></add-new>
+    <upload-page upload-page="$ctrl.upload();"></upload-page>
+    <export-page export-page="$ctrl.export()"></export-page>
+    <search-bar search-bar="$ctrl.search();" search-term="$ctrl.searchTerm"></search-bar>
+</div>

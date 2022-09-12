@@ -37,7 +37,9 @@ class Bulma {
     private static function do_html_table($table, $fields) {
         global $app_dir;
         $cols = sizeof($fields)+1;
-        $tblStr = '<table class="table is-hoverable is-striped is-fullwidth" ng-controller="'.$table.'Ctrl">'."\r\n";
+        $tb = Inflect::singularize($table);
+        $tblStr = '<tool-bar add-new="addnew" upload-page="upload" export-page="exportCSV();" search-bar="searchPage();" search-term="currentTableColumn"></tool-bar>'."\r\n";
+        $tblStr .= '<table class="table is-hoverable is-striped is-fullwidth" ng-controller="'.$table.'Ctrl"  id="'.$tb.'_table">'."\r\n";
         $tblStr .= '    <thead>'."\r\n";
         $tblStr .= '        <tr>'."\r\n";
         foreach($fields as $field) {
@@ -47,24 +49,24 @@ class Bulma {
         $tblStr .= '        </tr>'."\r\n";
         $tblStr .= '    </thead>'."\r\n";
         $tblStr .= '    <tbody>'."\r\n";
-        $tblStr .= '        <tr *ngFor="let '.Inflect::singularize($table).' in '.$table.'">'."\r\n";
+        $tblStr .= '        <tr ng-repeat=" '.Inflect::singularize($table).' in '.$table.'">'."\r\n";
         foreach($fields as $field) {
             $tblStr .= '            <td>{{'.Inflect::singularize($table).'.'.$field.'}}</td>'."\r\n";
         }
         $tblStr .='            <td>'."\r\n";
-        $tblStr .='                <a class="button is-success" href="#!/'.Inflect::singularize($table).'/edit/{{'.Inflect::singularize($table).'.id}}">'."\r\n";
+        $tblStr .='                <a class="has-text-success" href="#!/'.Inflect::singularize($table).'/edit/{{'.Inflect::singularize($table).'.id}}">'."\r\n";
         $tblStr .='                    <span class="icon">'."\r\n";
-        $tblStr .='                        <i class="mdi mdi-file-document-edit"></i>'."\r\n";
+        $tblStr .='                        <i class="fa fa-edit"></i>'."\r\n";
         $tblStr .='                    </span>'."\r\n";
         $tblStr .='                </a>&nbsp;'."\r\n";
-        $tblStr .='                <a class="button is-success" href="#!/'.Inflect::singularize($table).'/view/{{'.Inflect::singularize($table).'.id}}">'."\r\n";
+        $tblStr .='                <a class="has-text-success" href="#!/'.Inflect::singularize($table).'/view/{{'.Inflect::singularize($table).'.id}}">'."\r\n";
         $tblStr .='                    <span class="icon">'."\r\n";
-        $tblStr .='                        <i class="mdi mdi-file-document-eye"></i>'."\r\n";
+        $tblStr .='                        <i class="fa fa-eye"></i>'."\r\n";
         $tblStr .='                    </span>'."\r\n";
         $tblStr .='                </a>&nbsp;'."\r\n";
-        $tblStr .='                <a class="button is-danger" ng-click="remove('.Inflect::singularize($table).'.id);">'."\r\n";
+        $tblStr .='                <a class="has-text-danger" ng-click="remove('.Inflect::singularize($table).'.id);">'."\r\n";
         $tblStr .='                    <span class="icon">'."\r\n";
-        $tblStr .='                        <i class="mdi mdi-trash-can"></i>'."\r\n";
+        $tblStr .='                        <i class="fa fa-trash"></i>'."\r\n";
         $tblStr .='                   </span>'."\r\n";
         $tblStr .='               </a>'."\r\n";
         $tblStr .='           </td>'."\r\n";
@@ -72,7 +74,7 @@ class Bulma {
         $tblStr .= '    </tbody>'."\r\n";
         $tblStr .= '    <tfoot>'."\r\n";
         $tblStr .= '       <tr>'."\r\n".'            <td colspan="'.$cols.'">'."\r\n";
-        $tblStr .= '                <button type="button" *ngFor="let '.Inflect::singularize($table).' of '.$table.'; index as idx;">{{idx}}</button>'."\r\n";
+        $tblStr .= '                <button type="button" ng-repeat="(index, '.Inflect::singularize($table).') in '.$table.'">{{index}}</button>'."\r\n";
         $tblStr .= '            </td>'."\r\n".'        </tr>'."\r\n";
         $tblStr .= '    </tfoot>'."\r\n";
         $tblStr .= '</table>'."\r\n";
@@ -116,6 +118,40 @@ class Bulma {
         }
     }
 
+    private static function do_html_upload_page($table) {
+        global $app_dir;
+        $tb = Inflect::singularize($table);
+        $upStr = '<div class="container">'."\r\n";
+        $upStr .='    <h1 class="title is-3">Upload '.ucfirst($table).'</h1>';
+        $upStr .='    <div class="columns is-justify-content-center">'."\r\n";
+        $upStr .='        <div class="column is-6-tablet is-5-desktop is-4-widescreen is-3-fullhd">'."\r\n";
+        $upStr .='            <form method="POST" class="box p-5" enctype="multipart/form-data">'."\r\n";
+        $upStr .='                <label class="label is-block mb-4">'."\r\n";
+        $upStr .='                <span class="is-block mb-2"> Upload '.ucfirst($table).'</span>'."\r\n";
+        $upStr .='                <div class="file is-fullwidth">'."\r\n";
+        $upStr .='                    <label class="file-label">'."\r\n";
+        $upStr .='                    <input type="file" class="file-input" name="'.$tb.'_file">'."\r\n";
+        $upStr .='                    <span class="file-icon"><i class="fas fa-upload"></i></span>'."\r\n";
+        $upStr .='                    <span class="file-label">Choose a file...</span>'."\r\n";
+        $upStr .='                </div>'."\r\n";
+        $upStr .='            </form>'."\r\n";
+        $upStr .='        </div>'."\r\n";
+        $upStr .='    </div>'."\r\n";
+        $upStr .='</div>'."\r\n";
+        $file_dir = $app_dir."/resources/views/$table";
+        $views_file = $app_dir."/resources/views/$table/".Inflect::singularize($table)."_upload.html";
+        if(is_readable($views_file)){
+            file_put_contents($views_file, $upStr);
+        }else{
+            exec("mkdir $file_dir");
+            exec("chmod -R 755 $app_dir/resources/views/");
+            $fp = fopen($views_file,"w+");
+            fwrite($fp, "file created", 128);
+            fclose($fp);
+            file_put_contents($views_file, $upStr);
+        }
+    }
+
     private static function makeReports($tables) {
         foreach($tables as $table) {
             $report_fields = array();
@@ -125,6 +161,7 @@ class Bulma {
             }
             self::do_html_table($table, $report_fields);
             self::do_html_table_two_column($table, $report_fields);
+            self::do_html_upload_page($table);
         }
     }
 
@@ -161,6 +198,10 @@ class Bulma {
             $routeStr .= '        templateUrl: "'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
             $routeStr .= '    })'."\r\n";
+            $routeStr .= '    .when("/'.Inflect::singularize($table).'_upload", {'."\r\n";
+                $routeStr .= '        templateUrl: "'.$table.'/'.Inflect::singularize($table).'_upload.html",'."\r\n";
+                $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
+                $routeStr .= '    })'."\r\n";
             $routeStr .= '    .when("/'.Inflect::singularize($table).'/edit/:id", {'."\r\n";
             $routeStr .= '        templateUrl: "'.$table.'/'.Inflect::singularize($table).'.html",'."\r\n";
             $routeStr .= '        controller: "'.$table.'Ctrl",'."\r\n";
@@ -207,6 +248,7 @@ class Bulma {
             $lheaders .= '        <link rel="stylesheet" href="../css/jquery-ui.css">'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/fontawesome-all.min.css" >'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/custom/uploadfile.css" >'."\r\n";
+            $lheaders .= '        <link rel="icon" href="data:;base64,=">'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/custom/slide-menu.css" >'."\r\n";
             $lheaders .= '        <link rel="stylesheet" href="../css/custom/table-header.css" >'."\r\n";
         } else {
@@ -240,7 +282,14 @@ class Bulma {
             $html_body .= "\r\n    ".'<script  src="../js/autocomplete.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/index.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/route.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/xlsx.full.min.js"></script>';
             $html_body .= "\r\n    ".'<script  src="../js/bundle.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../components/toolbar/toolbar.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../components/addnew/addnew.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../components/upload/upload.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../components/export/export.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../components/search/search.js"></script>';
+            $html_body .= "\r\n    ".'<script  src="../js/useFontAwesome.js"></script>';
             $html_body .= "\r\n    ".'<script>'."\n";
             $html_body .='        '.self::getSnippet();
             $html_body .= "    ".'</script>';
@@ -532,6 +581,7 @@ class Bulma {
         
         utilities::xcopy('automator/css', $app_dir.'/resources/css');
         utilities::xcopy('automator/js', $app_dir.'/resources/js');
+        utilities::xcopy('automator/components', $app_dir.'/resources/components');
         utilities::xcopy('automator/webfonts', $app_dir.'/resources/webfonts');
         utilities::xcopy('automator/ckeditor', $app_dir.'/resources/ckeditor');
     }
@@ -669,13 +719,14 @@ class Bulma {
 
     private static function getSUInputField($name, $type, $table, $is_required, $disp=null) {
         [$field_id, $label, $model] = self::getLabels($name, $table);
+        $tb = Inflect::singularize($table);
         if (strpos($name, 'password') > -1) $type = 'password';
         $input_str = "\n".'         <div class="field" ';
         $input_str .= '>'."\n";
         $input_str .= '            <label class="label">'.$label.'</label>'."\n";
         $input_str .= '            <div class="control">'."\n";
         $input_str .= '             <input id="'.$field_id.'" name="'.$field_id.'"';
-        if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
+        if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
         $input_str.=' class="input" ';
         if ($disp == 'block') {
             $input_str .= 'type="'.$type.'"';
@@ -793,11 +844,12 @@ class Bulma {
 
     private static function getTextarea($name, $table){
         [$field_id, $label, $model] = self::getLabels($name, $table);
+        $tb = Inflect::singularize($table);
         $txt_str = "\n".'             <div class="field">'."\n";
         $txt_str .= '                   <label class="label">'.$label.'</label>'."\n";
         $txt_str .= '                   <div class="control">'."\n";
         $txt_str .= '                       <textarea id="'.$field_id.'" name="'.$field_id.'"';
-        if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.$table.'.'.$field_id.'"'; };
+        if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
         $txt_str .= ' class="textarea"';
         $txt_str .= '></textarea>'."\n";
         $txt_str .= '                   </div>'."\n";
@@ -809,7 +861,7 @@ class Bulma {
         $btn_str = "\n".'        <div class="field is-grouped">'."\n";
         $btn_str .= '            <p class="control">'."\n";
         $btn_str .= '              <button ';
-        if (self::$jsapp == "ng") { $btn_str .= 'type="button" ng-click="save'.ucwords($tbl).'()"'; };
+        if (self::$jsapp == "ng") { $btn_str .= 'type="button" ng-click="'.Inflect::singularize($tbl).'_save()"'; };
 
         $btn_str .= ' class="button is-primary">'."\n";
         $btn_str .= '                Submit'."\n";

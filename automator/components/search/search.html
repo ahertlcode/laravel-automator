@@ -1,0 +1,27 @@
+<style>
+    .search-box{
+        display: flex;
+        flex-direction: row;
+        padding: 0px !important;
+    }
+
+    .search-box>*{
+        flex: content;
+        border-radius: none !important;
+        border: none !important;
+        max-height: 30px;
+    }
+
+    .search-box>select{
+        font-size: 14px;
+    }
+</style>
+
+<label class="search-box">
+    <select id="searchTerm" name="searchTerm">
+        <option value="-1" selected>Select Search Term</option>
+        <option ng-repeat="(index, criteria) in $ctrl.searchTerm" ng-value="{{index}}"> {{criteria}} </option>
+
+    </select>
+    <input id="searchText"  name="searchText"  ng-keyup="$ctrl.dosearch();" type="text" class="input" placeholder="Enter search text">
+</label>
