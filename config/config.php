@@ -3,12 +3,12 @@
     return [
         "host" => "localhost",
         "port" => "3306",
-        "user" => "abayomi",
-        "password" => "aherceo2",
-        "database" => "school_manager",
+        "user" => "root",
+        "password" => "Tope1234$",
+        "database" => "school_managers",
         "database_type" => "mysql",
         "excludeTables" => ['migrations'],
-        "excludeColumns" => ['id','status','password_digest','password_reset_token','api_token','remember_token','createdAt','created_at','updatedAt','updated_at','deletedAt','deleted_at']
+        "excludeColumns" => ['id','status','password_digest','password_reset_token','api_token','remember_token','createdAt','created_at','updatedAt','updated_at','deletedAt','deleted_at','user_id','owner_id']
     ];
 
 ?>
