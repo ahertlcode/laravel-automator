@@ -746,11 +746,16 @@ class Bulma {
 
     private static function getInputField($name, $type, $table, $is_required, $disp=null){
         [$field_id, $label, $model] = self::getLabels($name, $table);
+        $tb = Inflect::singularize($table);
         $input_str = "\n".'         <div class="field">'."\n";
         $input_str .= '            <label class="label">'.$label.'</label>'."\n";
         $input_str .= '            <div class="control">'."\n";
         $input_str .= '             <input id="'.$field_id.'" name="'.$field_id.'"';
-        if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
+        if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+
+        //if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         $input_str.=' class="input ';
         if (strpos($name, 'date') > -1) $input_str .= 'datepicker';
         $input_str.='"';
@@ -773,6 +778,7 @@ class Bulma {
 
     private static function getSUSelectField($name, $table, $disp=null) {
         [$field_id, $label, $model] = self::getLabels($name, $table);
+        $tb = Inflect::singularize($table);
         $new_label = ucwords(str_replace(" id", "", strtolower($label)));
         $items = Inflect::pluralize(strtolower(str_replace(" ","_",trim($new_label))));
         $select_str = "\n".'         <div class="field"';
@@ -780,7 +786,10 @@ class Bulma {
         $select_str .= '              <label class="label">'.trim($new_label).'</label>'."\n";
         $select_str .= '              <div class="select" style="width:100%;">'."\n";
         $select_str .= '                  <select class="input" ';
-        if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
+        if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+        //if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         if ($disp == 'none') {
             $select_str .= ' hidden="hidden" ';
         }
@@ -801,10 +810,10 @@ class Bulma {
         global $app_dir;
         global $dbname;
         $fkey = self::$dbh->getFkeys($dbname, $table, $name);
-    
+        $tb = Inflect::singularize($table);
         $ref_table =  ($fkey!=null) ? $fkey[0]["REFERENCED_TABLE_NAME"] : null;
         $ref_file = "$ref_table/".Inflect::singularize($ref_table).".html";
-       
+        $ref_value = Inflect::singularize($ref_table);
         [$field_id, $label, $model] = self::getLabels($name, $table);
         $new_label = ucwords(str_replace(" id", "", strtolower($label)));
         $items = Inflect::pluralize(strtolower(str_replace(" ","_",trim($new_label))));
@@ -812,9 +821,14 @@ class Bulma {
         $select_str .= '                <label class="label">'.trim($new_label).'</label>'."\n";
         $select_str .= '                <div class="select" style="width:100%;">'."\n";
         $select_str .= '                    <select class="input" ';
-        if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
+        if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+        $select_str .=' ng-options ="'.$ref_value.'.id for '.$ref_value.' in '.$ref_table.'"';
+
+        //if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         $select_str .='>'."\n";
-        $select_str .= '                        <option value="-1">Select '.$new_label.'</option>'."\n";
+        $select_str .= '                        <option value="-1">--- Select '.$new_label.'---</option>'."\n";
         $select_str .= '                    </select>'."\n";
         $select_str .= '                    <a onclick="doPop(\'Add '.ucwords(Inflect::singularize(str_replace("_"," ",$ref_table))).'\',\''.$ref_file.'\');" class="btn"><i class="fa fa-plus"></i></a>'."\n";
         $select_str .= '                </div>'."\n";
@@ -824,12 +838,17 @@ class Bulma {
 
     private static function getSUTextarea($name, $table,$disp=null) {
         [$field_id, $label, $model] = self::getLabels($name, $table);
+        $tb = Inflect::singularize($table);
         $txt_str = "\n".'             <div class="field" ';
         $txt_str .= '>'."\n";
         $txt_str .= '                   <label class="label">'.$label.'</label>'."\n";
         $txt_str .= '                   <div class="control">'."\n";
         $txt_str .= '                       <textarea id="'.$field_id.'" name="'.$field_id.'"';
-        if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
+        if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+
+        //if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         $txt_str .= ' class="textarea"';
         $txt_str .= '></textarea>'."\n";
         $txt_str .= '                   </div>'."\n";

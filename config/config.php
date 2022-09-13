@@ -3,9 +3,9 @@
     return [
         "host" => "localhost",
         "port" => "3306",
-        "user" => "abayomi",
-        "password" => "aherceo2",
-        "database" => "school_manager_3",
+        "user" => "root",
+        "password" => "Tope1234$",
+        "database" => "school_manager",
         "database_type" => "mysql",
         "excludeTables" => ['migrations','failed_jobs','personal_access_tokens','password_resets'],
         "excludeColumns" => [

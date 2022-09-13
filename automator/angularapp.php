@@ -137,7 +137,7 @@ class AngularApp {
     }
 
     private static function get_js_main_view($tbs) {
-        $tb = Inflect::singularize($tbs);
+        //$tb = Inflect::singularize($tbs);
         $mainstr  ='    $http({'."\r\n";
         $mainstr .='        url: base_api_url+"/'.$tbs.'",'."\r\n";
         $mainstr .='        method: "GET",'."\r\n";
@@ -234,6 +234,7 @@ class AngularApp {
     
     private static function do_js_file($tb){
         global $app_dir, $dbname;
+        $fkey = self::$dbh->getFkeys($dbname, $tb);
         $tbj = Inflect::singularize($tb);
         $jstr ="//javascript file for ".$tb." using angularjs for data-binding.\r\n";
         $jstr .='app.controller ('."'".$tb."Ctrl'".', function($scope, $http) {'."\r\n\r\n";
@@ -266,7 +267,7 @@ class AngularApp {
         $jstr .='                 if (tdValue.indexOf(searchValue) > -1) {'."\r\n";
         $jstr .='                     $(row).show();'."\r\n";
         $jstr .='                 } else {'."\r\n";
-        $jstr .='                     $(row).hide();';
+        $jstr .='                     $(row).hide();'."\r\n";
         $jstr .='                 }'."\r\n";
         $jstr .='             }'."\r\n";
         $jstr .='         } else {'."\r\n";
@@ -285,6 +286,9 @@ class AngularApp {
         $jstr .= self::get_js_update_method($tb); //update method trigger
         $jstr .= self::get_js_delete_method($tb); //delete method
         $jstr .= self::get_js_main_view($tb); //main model view
+        foreach ($fkey as $ftab) {
+            $jstr .= self::get_js_main_view($ftab["REFERENCED_TABLE_NAME"]);
+        }
         $jstr .="});\r\n";
         $file_dir = $app_dir."/resources/script";
         $js_file = $app_dir."/resources/script/".$tbj.".js";
