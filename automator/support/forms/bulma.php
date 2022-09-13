@@ -43,7 +43,7 @@ class Bulma {
         $tblStr .= '    <thead>'."\r\n";
         $tblStr .= '        <tr>'."\r\n";
         foreach($fields as $field) {
-            $tblStr .= '            <th>'.strtoupper($field).'</th>'."\r\n";
+            $tblStr .= '            <th>'.trim(strtoupper(str_replace("id","",str_replace("_"," ",$field)))).'</th>'."\r\n";
         }
         $tblStr .= '            <th>&nbsp;</th>'."\r\n";
         $tblStr .= '        </tr>'."\r\n";
@@ -751,7 +751,11 @@ class Bulma {
         $input_str .= '            <label class="label">'.$label.'</label>'."\n";
         $input_str .= '            <div class="control">'."\n";
         $input_str .= '             <input id="'.$field_id.'" name="'.$field_id.'"';
+
         if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+
+        //if (self::$jsapp == "ng") { $input_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         $input_str.=' class="input ';
         if (strpos($name, 'date') > -1) $input_str .= 'datepicker';
         $input_str.='"';
@@ -782,7 +786,10 @@ class Bulma {
         $select_str .= '              <label class="label">'.trim($new_label).'</label>'."\n";
         $select_str .= '              <div class="select" style="width:100%;">'."\n";
         $select_str .= '                  <select class="input" ';
+
         if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+        //if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         if ($disp == 'none') {
             $select_str .= ' hidden="hidden" ';
         }
@@ -814,8 +821,12 @@ class Bulma {
         $select_str .= '                <label class="label">'.trim($new_label).'</label>'."\n";
         $select_str .= '                <div class="select" style="width:100%;">'."\n";
         $select_str .= '                    <select class="input" ';
+
         if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
         $select_str .=' ng-options ="'.$ref_value.'.id for '.$ref_value.' in '.$ref_table.'"';
+
+        //if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         $select_str .='>'."\n";
         $select_str .= '                        <option value="-1">--- Select '.$new_label.'---</option>'."\n";
         $select_str .= '                    </select>'."\n";
@@ -833,7 +844,11 @@ class Bulma {
         $txt_str .= '                   <label class="label">'.$label.'</label>'."\n";
         $txt_str .= '                   <div class="control">'."\n";
         $txt_str .= '                       <textarea id="'.$field_id.'" name="'.$field_id.'"';
+
         if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
+
+        //if (self::$jsapp == "ng") { $txt_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
+
         $txt_str .= ' class="textarea"';
         $txt_str .= '></textarea>'."\n";
         $txt_str .= '                   </div>'."\n";

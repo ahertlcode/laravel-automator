@@ -64,7 +64,7 @@ use App\Models\User;
      */
     protected function getDataOwner() {
         if ($this->currentUser()->owner_id !== null) {
-            return User::where('owner_id', $this->currentUser()->owner_id)->get()[0];
+            return User::where('id', $this->currentUser()->owner_id)->get()[0];
         } else {
             return $this->currentUser();
         }

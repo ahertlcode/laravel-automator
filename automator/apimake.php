@@ -28,8 +28,6 @@ class Apimake
         $tables = $this->tables;
         foreach($tables as $tbl) {
             $obj = $this->getModel($tbl);
-            
-            if (strtoupper($tbl))
 
             if (strtoupper($tbl) == "USERS" || strtoupper($tbl) == "USER") {
                 $artisan_cmd = "php artisan make:controller ".$obj['controller']." --model=".$obj['model'];
@@ -60,7 +58,7 @@ class Apimake
         foreach($envs as $env) {
             $pair = explode("=", $env);
             if ($pair[0]=="DB_USERNAME") $envStr .= str_replace($pair[1], $config['user'], $env)."\n";
-            elseif ($pair[0]=="DB_PASSWORD") $envStr .= str_replace("DB_PASSWORD=", "DB_PASSWORD=".$config['password'], $env)."\n";
+            elseif ($pair[0]=="DB_PASSWORD") $envStr .= str_replace($pair[1], $config['password'], $env)."\n";
             else $envStr .= $env."\n";
         }
         if (!empty($envStr)) \file_put_contents($app_dir."/.env", $envStr);
@@ -145,6 +143,7 @@ class Apimake
             }
             $fite += 1;
         }
+        $modelstr .= ",'user_id','owner_id'";
         $modelstr .= "];\r\n\r\n";
 
         $modelstr .= "    /**\n     *\n     * Hidden columns not to be returned in query result.\n     *\n     */\n";
@@ -206,6 +205,11 @@ class Apimake
             if (!in_array($field['Field'], $this->excludeColumns)) $fields[] = $field["Field"];
             if (in_array($field['Field'], $this->excludeColumns)) $hfield[] = $field['Field'];
         }
+
+        if ($tbl == "users" || $tbl == "user") {
+            array_push($hfield, "password");
+        }
+
         return ['fillable'=>$fields, 'hidden'=>$hfield];
     }
 
@@ -233,21 +237,12 @@ class Apimake
         }
     }
 
-    private function getCurrentUser(){
-        $functstr = "    /**\n     * Return the currently login user\n     * An instance of App\User model\n";
-        $functstr .= "     * @return App\User\n     */\n";
-        $functstr .= "    protected function currentUser()\n    {\n";
-        $functstr .= "        return Auth::guard('api')->user();";
-        $functstr .= "\n    }\n\n";
-        return $functstr;
-    }
-
     private function getIndexFunct($table){
         $functstr = "    /**\n     * Display a listing of the resource.\n     *\n     * @return \Illuminate\Http\Response\n     */\n";
         $model = $this->getModel($table)['model'];
         $fkeys = $this->getTableFkeys($table); //$this->getFields($table)['foreignKey'];
         $functstr .= "    public function index()\n    {\n";
-        $functstr .= '        $'.$table.'  = '.$model.'::where("user_id", $this->getDataOwner()->id)->get();'."\r\n";
+        $functstr .= '        $'.$table.'  = '.$model.'::where(["owner_id" => $this->getDataOwner()->id])->orwhere(["user_id" => $this->currentUser()->id])->get();'."\r\n";
         if ($fkeys != null) {
             if (count($fkeys)>0) {
                 $functstr .= '        $pointer = 0;'."\r\n";
@@ -269,7 +264,8 @@ class Apimake
         $functstr .="     * @return \Illuminate\Http\Response\n     */\n";
         $model = $this->getModel($table)['model'];
         $functstr .= '    public function store(Request $request)'."\n    {\n";
-        $functstr .= '        $request->request->add(["user_id"=>$this->getDataOwner()->id]);'."\r\n\r\n";
+        $functstr .= '        $request->request->add(["owner_id"=>$this->getDataOwner()->id]);'."\r\n\r\n";
+        $functstr .= '        $request->request->add(["user_id"=>$this->currentUser()->id]);'."\r\n\r\n";
         $fields = $this->getFields($table)['fillable'];
         $functstr .= '        $request->validate(['."\r\n";
         foreach($fields as $field) {
