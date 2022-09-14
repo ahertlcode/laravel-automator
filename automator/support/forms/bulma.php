@@ -823,12 +823,11 @@ class Bulma {
         $select_str .= '                    <select class="input" ';
 
         if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
-        $select_str .=' ng-options ="'.$ref_value.'.id for '.$ref_value.' in '.$ref_table.'"';
-
         //if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
 
         $select_str .='>'."\n";
         $select_str .= '                        <option value="-1">--- Select '.$new_label.'---</option>'."\n";
+        $select_str .= '                        <option ng-repeat="'.$ref_value.' in '.$ref_table.'" value={{'.$ref_value.'.id}}>{{'.$ref_value.'.id}}</option>';
         $select_str .= '                    </select>'."\n";
         $select_str .= '                    <a onclick="doPop(\'Add '.ucwords(Inflect::singularize(str_replace("_"," ",$ref_table))).'\',\''.$ref_file.'\');" class="btn"><i class="fa fa-plus"></i></a>'."\n";
         $select_str .= '                </div>'."\n";
