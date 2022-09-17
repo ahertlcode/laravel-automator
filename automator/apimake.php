@@ -150,6 +150,7 @@ class Apimake
         $modelstr .= '    protected $hidden = [';
         $fite = 0;
         foreach($props['hidden'] as $item){
+            if ($item == "id") continue;
             if($fite < sizeof($props['hidden'])-1){
                 $modelstr .= "'".$item."',";
             }else{
