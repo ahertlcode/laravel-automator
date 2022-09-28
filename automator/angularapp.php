@@ -119,6 +119,60 @@ class AngularApp {
         
     }
 
+    private static function get_js_upload_method($tbs) {
+        $tb = Inflect::singularize($tbs);
+        $uplstr = '     $scope.do_'.$tb.'_upload = function(id){'."\r\n";
+        $uplstr .= '         var xlsxflag = false'."\r\n";
+        $uplstr .= '         if ($("#'.$tb.'file").val().toLowerCase().indexOf(".xlsx") > 0) {'."\r\n";
+        $uplstr .= '             xlsxflag = true;'."\r\n";
+        $uplstr .= '         }'."\r\n";
+        $uplstr .= '         var reader = new FileReader();'."\r\n";
+        $uplstr .= '         reader.onload = function (e) {'."\r\n";
+        $uplstr .= '             var data = e.target.result;'."\r\n";
+        $uplstr .= '             if (xlsxflag) {'."\r\n";
+        $uplstr .= '                 var workbook = XLSX.read(data, { type: "binary" });'."\r\n";
+        $uplstr .= '             } else {'."\r\n";
+        $uplstr .= '                 var workbook = XLS.read(data, { type: "binary" });'."\r\n";
+        $uplstr .= '             }'."\r\n";
+        $uplstr .= '              var sheet_name_list = workbook.SheetNames;'."\r\n";
+        $uplstr .= '              sheet_name_list.forEach(function (y) { //Iterate through all sheets'."\r\n";
+        $uplstr .= '                  if (xlsxflag) {'."\r\n";
+        $uplstr .= '                      this.'.$tb.' = XLSX.utils.sheet_to_json(workbook.Sheets[y]);'."\r\n";
+        $uplstr .= '                  } else {'."\r\n";
+        $uplstr .= '                      this.'.$tb.' = XLS.utils.sheet_to_row_object_array(workbook.Sheets[y]);'."\r\n";
+        $uplstr .= '                  }'."\r\n";
+        $uplstr .= '                  if (this.'.$tb.'.length > 0) {'."\r\n";
+        $uplstr .= '                      for (let i = 0; i<this.'.$tb.'.length; i++) {'."\r\n";
+        $uplstr .= '                          $http({'."\r\n";
+        $uplstr .= '                              url: base_api_url+"/'.$tbs.'",'."\r\n";
+        $uplstr .= '                              method: "POST",'."\r\n";
+        $uplstr .= '                              data:this.'.$tb.'[i],'."\r\n";
+        $uplstr .= '                              headers:headers'."\r\n";
+        $uplstr .= '                          }).then((result) =>{'."\r\n";
+        $uplstr .= '                              $scope.info = result.data.message;'."\r\n";
+        $uplstr .= '                           }, function(error){'."\r\n";
+        $uplstr .= '                               $scope.error = error.data.message;'."\r\n";
+        $uplstr .= '                           })'."\r\n";
+        $uplstr .= '                        }'."\r\n";
+        $uplstr .= '                              setTimeout(() => {'."\r\n";
+        $uplstr .= '                                  setTimeout(() => { '."\r\n";
+        $uplstr .= '                                      window.location.assign("#!/'.$tbs.'");'."\r\n";
+        $uplstr .= '                                  },100)'."\r\n";
+        $uplstr .= '                                  alert($scope.info)'."\r\n";
+        $uplstr .= '                              },500);'."\r\n";
+        $uplstr .= '                    }'."\r\n";
+        $uplstr .= '              })'."\r\n";
+        $uplstr .= '          }'."\r\n";
+        $uplstr .= '          if (xlsxflag) {'."\r\n";
+        $uplstr .= '              reader.readAsArrayBuffer($("#'.$tb.'file")[0].files[0]);'."\r\n";
+        $uplstr .= '          } else {'."\r\n";
+        $uplstr .= '              reader.readAsBinaryString($("#ngexcelfile")[0].files[0]);'."\r\n";
+        $uplstr .= '          }'."\r\n";
+        $uplstr .= '    }'."\r\n\n";
+
+        return $uplstr;
+    }
+
     private static function get_js_delete_method($tbs) {
         $tb = Inflect::singularize($tbs);
         $delstr = '    $scope.'.$tb.'_delete = function(id){'."\r\n";
@@ -245,7 +299,13 @@ class AngularApp {
         $jstr .='     $scope.upload = "#!/'.$tbj.'_upload";'."\n";
         $jstr .='     $scope.currentTableColumn = [';
         $jstr .= implode(",", array_map( fn($field) => '"'.$field["Field"].'"' , self::get_table_columns($tb)));
-        $jstr .='];'."\r\n";
+        $jstr .='];'."\r\n\n";
+        $jstr .= '   let user_token = local_store("get", "'.$dbname.'User").token;'."\n\n";
+        $jstr .= '    let headers = {'."\n";
+        $jstr .= '        "Content-Type":"application/json",'."\n";
+        $jstr .= '        "Accept":"application/json",'."\n";
+        $jstr .= '        "Authorization":"Bearer "+user_token'."\n";
+        $jstr .= '    };'."\n\n";
         $jstr .='     $scope.exportCSV = () => {'."\r\n";
         $jstr .='         const EXCEL_EXTENSION = ".xlsx";'."\r\n";
         $jstr .='         const exportTable = document.getElementById("'.$tbj.'_table");'."\r\n";
@@ -274,16 +334,11 @@ class AngularApp {
         $jstr .='             window.alert("select a search criteria")'."\r\n";
         $jstr .='         }'."\r\n";
         $jstr .='     }'."\r\n\n";
-        $jstr .= '   let user_token = local_store("get", "'.$dbname.'User").token;'."\n\n";
-        $jstr .= '    let headers = {'."\n";
-        $jstr .= '        "Content-Type":"application/json",'."\n";
-        $jstr .= '        "Accept":"application/json",'."\n";
-        $jstr .= '        "Authorization":"Bearer "+user_token'."\n";
-        $jstr .= '    };'."\n\n";
         //$jstr .="    this.update = {col_name:'', col_value:''};\r\n\r\n";
         $jstr .= self::get_js_save_method($tb); //create and update method
         $jstr .= self::get_js_view_method($tb); //retrieve method
         $jstr .= self::get_js_update_method($tb); //update method trigger
+        $jstr .= self::get_js_upload_method($tb); //uupload files method trigger
         $jstr .= self::get_js_delete_method($tb); //delete method
         $jstr .= self::get_js_main_view($tb); //main model view
         foreach ($fkey as $ftab) {

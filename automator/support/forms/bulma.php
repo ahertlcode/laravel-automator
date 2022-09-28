@@ -122,19 +122,23 @@ class Bulma {
         global $app_dir;
         $tb = Inflect::singularize($table);
         $upStr = '<div class="container">'."\r\n";
-        $upStr .='    <h1 class="title is-3">Upload '.ucfirst($table).'</h1>';
+        if ((preg_match('/^[a-z]+_[a-z]+$/i', $table))) {
+            $tab = ucwords(implode(" ",explode("_",$table)));
+        } else {
+            $tab = ucfirst($table);
+        };
+        $upStr .='    <h1 class="title is-3">Upload '.$tab.'</h1>'."\r\n";
         $upStr .='    <div class="columns is-justify-content-center">'."\r\n";
-        $upStr .='        <div class="column is-6-tablet is-5-desktop is-4-widescreen is-3-fullhd">'."\r\n";
-        $upStr .='            <form method="POST" class="box p-5" enctype="multipart/form-data">'."\r\n";
-        $upStr .='                <label class="label is-block mb-4">'."\r\n";
-        $upStr .='                <span class="is-block mb-2"> Upload '.ucfirst($table).'</span>'."\r\n";
-        $upStr .='                <div class="file is-fullwidth">'."\r\n";
-        $upStr .='                    <label class="file-label">'."\r\n";
-        $upStr .='                    <input type="file" class="file-input" name="'.$tb.'_file">'."\r\n";
-        $upStr .='                    <span class="file-icon"><i class="fas fa-upload"></i></span>'."\r\n";
-        $upStr .='                    <span class="file-label">Choose a file...</span>'."\r\n";
-        $upStr .='                </div>'."\r\n";
-        $upStr .='            </form>'."\r\n";
+        $upStr .='        <div class="column is-7-tablet is-6-desktop is-5-widescreen is-4-fullhd">'."\r\n";
+        $upStr .='            <div class="box p-5">'."\r\n";
+        $upStr .='                <form method="POST" enctype="multipart/form-data">'."\r\n";
+        $upStr .='                    <input type="file" id="'.$tb.'file" name="'.$tb.'file" class="input is-large is-primary">'."\r\n";
+        $upStr .='                    <div class="control has-text-centered m-3">'."\r\n";
+        $upStr .='                         <button type="submit" class="button is-primary is-normal is-justify-content-center mr-3" ng-click = '.$tb.'_upload()>Submit</button>'."\r\n";
+        $upStr .='                         <button type="reset" class="button is-warning is-normal is-justify-content-center">Clear</button>'."\r\n";
+        $upStr .='                    </div>'."\r\n";
+        $upStr .='                </form>'."\r\n";
+        $upStr .='            </div>'."\r\n";
         $upStr .='        </div>'."\r\n";
         $upStr .='    </div>'."\r\n";
         $upStr .='</div>'."\r\n";
@@ -645,11 +649,13 @@ class Bulma {
         $form_str .= "      </form>"."\n";
 
         if ($addDatePicker == true) {
+            $form_str .= "    <script>\r\n";
             $form_str .= "      $( function() {\n\r";
             $form_str .= "            $( \".datepicker\" ).map((i, item) => {\n\r";
             $form_str .= "                  $(item).datepicker();\n\r";
             $form_str .= "            })\n\r";
             $form_str .= "      } );\n\r";
+            $form_str .= "    </script>\r\n";
         }
         
         $file_dir = $app_dir."/resources/views/$table";
@@ -823,12 +829,11 @@ class Bulma {
         $select_str .= '                    <select class="input" ';
 
         if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.$tb.'.'.$field_id.'"'; };
-        $select_str .=' ng-options ="'.$ref_value.'.id for '.$ref_value.' in '.$ref_table.'"';
-
         //if (self::$jsapp == "ng") { $select_str .= ' ng-model="'.Inflect::singularize($table).'.'.$field_id.'"'; };
 
         $select_str .='>'."\n";
         $select_str .= '                        <option value="-1">--- Select '.$new_label.'---</option>'."\n";
+        $select_str .= '                        <option ng-repeat="'.$ref_value.' in '.$ref_table.'" value="{{'.$ref_value.'.id}}">{{'.$ref_value.'.'.$ref_value.'}}</option>'."\r\n";
         $select_str .= '                    </select>'."\n";
         $select_str .= '                    <a onclick="doPop(\'Add '.ucwords(Inflect::singularize(str_replace("_"," ",$ref_table))).'\',\''.$ref_file.'\');" class="btn"><i class="fa fa-plus"></i></a>'."\n";
         $select_str .= '                </div>'."\n";

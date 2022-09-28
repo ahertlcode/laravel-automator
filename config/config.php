@@ -4,7 +4,7 @@
         "host" => "localhost",
         "port" => "3306",
         "user" => "root",
-        "password" => "Tope1234$",
+        "password" => "ahertl2022",
         "database" => "school_manager",
         "database_type" => "mysql",
         "excludeTables" => ['migrations','failed_jobs','personal_access_tokens','password_resets'],
