@@ -300,6 +300,7 @@ class AngularApp {
         $jstr .='     $scope.currentTableColumn = [';
         $jstr .= implode(",", array_map( fn($field) => '"'.$field["Field"].'"' , self::get_table_columns($tb)));
         $jstr .='];'."\r\n\n";
+        $jstr .= '   $scope.search = ""'."\r\n";
         $jstr .= '   let user_token = local_store("get", "'.$dbname.'User").token;'."\n\n";
         $jstr .= '    let headers = {'."\n";
         $jstr .= '        "Content-Type":"application/json",'."\n";
@@ -314,25 +315,6 @@ class AngularApp {
         $jstr .='         const workbook = XLSX.utils.book_new();'."\r\n";
         $jstr .='         XLSX.utils.book_append_sheet(workbook, ws, "Sheet1");'."\r\n";
         $jstr .='         XLSX.writeFile(workbook, `${fileName}${EXCEL_EXTENSION}`);'."\r\n";
-        $jstr .='     }'."\r\n\n";
-        $jstr .='     $scope.searchPage = () => {'."\r\n";
-        $jstr .='         const crit = $("#searchTerm").val();'."\r\n";
-        $jstr .='         const searchValue = $("#searchText").val().toUpperCase();'."\r\n";
-        $jstr .='         const table = document.getElementById("'.$tbj.'_table");'."\r\n";
-        $jstr .='         const tr = table.lastElementChild.children;'."\r\n";
-        $jstr .='         if (crit != null && crit != -1) {'."\r\n";
-        $jstr .='             for (const row of tr) {'."\r\n";
-        $jstr .='                 let tdValue = row.cells[crit].textContent || row.cells[crit].innerText;'."\r\n";
-        $jstr .='                 tdValue = tdValue.toUpperCase();'."\r\n";
-        $jstr .='                 if (tdValue.indexOf(searchValue) > -1) {'."\r\n";
-        $jstr .='                     $(row).show();'."\r\n";
-        $jstr .='                 } else {'."\r\n";
-        $jstr .='                     $(row).hide();'."\r\n";
-        $jstr .='                 }'."\r\n";
-        $jstr .='             }'."\r\n";
-        $jstr .='         } else {'."\r\n";
-        $jstr .='             window.alert("select a search criteria")'."\r\n";
-        $jstr .='         }'."\r\n";
         $jstr .='     }'."\r\n\n";
         //$jstr .="    this.update = {col_name:'', col_value:''};\r\n\r\n";
         $jstr .= self::get_js_save_method($tb); //create and update method

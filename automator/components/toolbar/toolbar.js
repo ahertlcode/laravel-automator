@@ -1,6 +1,6 @@
 const toolBarController = function($scope) {
     const lbar = this;
-    
+
     lbar.ishow = () => {
         window.location.href = lbar.addNew;
     }
@@ -13,9 +13,6 @@ const toolBarController = function($scope) {
         lbar.exportPage();
     }
 
-    lbar.search = () => {
-        lbar.searchBar();
-    }
 }
 
 app.component('toolBar', {
@@ -25,8 +22,8 @@ app.component('toolBar', {
         addNew: "=",
         uploadPage: "=",
         exportPage: "&",
-        searchBar: "&",
-        searchTerm: "="
+        searchTerm: "=",
+        doSearch: "="
 
     }
 });
