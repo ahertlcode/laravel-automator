@@ -1,8 +1,8 @@
 const searchBarController = function($scope) {
     const sb = this;
 
-    sb.dosearch = () => {
-        sb.searchBar();
+    sb.dosearch = (e) => {
+        sb.doSearch = e.target.value;
     }
 }
 
@@ -11,6 +11,7 @@ app.component('searchBar', {
     controller: searchBarController,
     bindings: {
         searchBar: "&",
-        searchTerm: "="
+        searchTerm: "=",
+        doSearch: "="
     }
 })

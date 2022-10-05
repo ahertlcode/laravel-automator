@@ -38,8 +38,9 @@ class Bulma {
         global $app_dir;
         $cols = sizeof($fields)+1;
         $tb = Inflect::singularize($table);
-        $tblStr = '<tool-bar add-new="addnew" upload-page="upload" export-page="exportCSV();" search-bar="searchPage();" search-term="currentTableColumn"></tool-bar>'."\r\n";
-        $tblStr .= '<table class="table is-hoverable is-striped is-fullwidth" ng-controller="'.$table.'Ctrl"  id="'.$tb.'_table">'."\r\n";
+        $tblStr = '<div ng-controller="'.$table.'Ctrl">'."\r\n";
+        $tblStr .= '  <tool-bar add-new="addnew" upload-page="upload" export-page="exportCSV();" search-bar="searchPage();" search-term="currentTableColumn"></tool-bar>'."\r\n";
+        $tblStr .= '  <table class="table is-hoverable is-striped is-fullwidth"  id="'.$tb.'_table">'."\r\n";
         $tblStr .= '    <thead>'."\r\n";
         $tblStr .= '        <tr>'."\r\n";
         foreach($fields as $field) {
@@ -77,7 +78,8 @@ class Bulma {
         $tblStr .= '                <button type="button" ng-repeat="(index, '.Inflect::singularize($table).') in '.$table.'">{{index}}</button>'."\r\n";
         $tblStr .= '            </td>'."\r\n".'        </tr>'."\r\n";
         $tblStr .= '    </tfoot>'."\r\n";
-        $tblStr .= '</table>'."\r\n";
+        $tblStr .= '  </table>'."\r\n";
+        $tblStr .= '</div>'."\r\n";
         $file_dir = $app_dir."/resources/views/$table";
         $views_file = $app_dir."/resources/views/$table/".$table.".html";
         if(is_readable($views_file)){
