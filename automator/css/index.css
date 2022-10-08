@@ -1,0 +1,88 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+.navbar-brand {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    margin-top: 10px;
+}
+
+body, html {
+    height: 100%;
+}
+
+html {
+   background-image: url("../css/images/bg1.jpg");
+   background-position: center;
+   background-repeat: no-repeat;
+   background-size: cover;
+
+}
+
+body {
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.register_cont {
+    margin-top: 50px;
+}
+.form-container {
+    width: 400px;
+    background-color: white;
+    margin-top: 200px;
+    padding: 10px;
+    filter: contrast(5px);
+    align-self: center;
+    align-items: center;
+    transform: translateX(0);
+}
+
+.login-form {
+    display: flex;
+    background-color: white;
+    flex-direction: column;
+    justify-content: space-evenly;
+    font-weight: bold;
+}
+
+.login_cont {
+    width: 400px;
+    background-color: white;
+    margin-top: 50%;
+    padding: 10px;
+    filter: contrast(5px);
+    align-self: center;
+    align-items: center;
+    transform: translateX(0);
+}
+
+.register_cont {
+    width: 400px;
+    background-color: white;
+    margin-top: 50%;
+    margin-bottom: 15%;
+    padding: 10px;
+    filter: contrast(5px);
+    align-self: center;
+    align-items: center;
+    transition: ease-in;
+}
+@media only screen and (min-width: 320px) and (max-width: 576px) {
+    .register_cont .login_cont {
+        width: 300px;
+    }
+}
+
+@media only screen and (min-width: 577px) and (max-width: 980px) {
+    .register-cont .login_cont {
+        width: 360px;
+    }
+}
+
+@media only screen and (min-width: 260px) and (max-width: 320px) {
+    .register-cont .login_cont {
+        width: 260px;
+    }
+}
+
