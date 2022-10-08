@@ -73,6 +73,7 @@ class AngularApp
     private static function get_js_save_method($tbs){
         $tb = Inflect::singularize($tbs);
         $jsave = '    $scope.'.$tb.'_save = function() {'."\r\n";
+        $jsave .= '      if ($scope.editing == false) {'."\r\n";
         $jsave .= '        $http({'."\r\n";
         $jsave .= '            url: base_api_url+"/'.$tbs.'",'."\r\n";
         $jsave .= '            method: "POST",'."\r\n";
@@ -89,6 +90,24 @@ class AngularApp
         $jsave .= '        }, function(error){'."\r\n";
         $jsave .= '            $scope.error = error.statusText;'."\r\n";
         $jsave .= '        });'."\r\n";
+        $jsave .= '       } else {'."\r\n";
+        $jsave .= '         $http({'."\r\n";
+        $jsave .= '            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
+        $jsave .= '            method: "PUT",'."\r\n";
+        $jsave .= '            data:this.'.$tb.','."\r\n";
+        $jsave .= '            headers:headers'."\n";
+        $jsave .= '         }).then((result) =>{'."\r\n";
+        $jsave .= '            $scope.'.$tb.' = result.data.message;'."\r\n";
+        $jsave .= '            setTimeout(() => {'."\r\n";
+        $jsave .= '                setTimeout(() => { ;'."\r\n";
+        $jsave .= '                  window.location.assign("#!/'.$tbs.'");'."\r\n";
+        $jsave .= '                },100)'."\r\n";
+        $jsave .= '                alert($scope.info)'."\r\n";
+        $jsave .= '            },500);'."\r\n";
+        $jsave .= '         }, function(error){'."\r\n";
+        $jsave .= '            $scope.error = error.statusText;'."\r\n";
+        $jsave .= '         });'."\r\n";
+        $jsave .= '       }'."\r\n";
         $jsave .= '    };'."\r\n\r\n";
         return $jsave;
     }
@@ -98,36 +117,21 @@ class AngularApp
         $tb = Inflect::singularize($tbs);
         $jsview = '    $scope.'.$tb.'_view_single = function(){'."\r\n";
         $jsview .= '        const id = $routeParams.id'."\r\n";
-        $jsview .= '        $http({'."\r\n";
-        $jsview .= '            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
-        $jsview .= '            method: "GET",'."\r\n";
-        $jsview .= '            headers:headers'."\n";
-        $jsview .= '        }).then((result) =>{'."\r\n";
-        $jsview .= '            $scope.'.$tb.' = result.data.data;'."\r\n";
-        $jsview .= '        }, function(error){'."\r\n";
-        $jsview .= '            $scope.error = error.statusText;'."\r\n";
-        $jsview .= '        });'."\r\n";
+        $jsview .= '        if(id) {'."\r\n";
+        $jsview .= '          $http({'."\r\n";
+        $jsview .= '              url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
+        $jsview .= '              method: "GET",'."\r\n";
+        $jsview .= '              headers:headers'."\n";
+        $jsview .= '          }).then((result) =>{'."\r\n";
+        $jsview .= '              $scope.'.$tb.' = result.data.data;'."\r\n";
+        $jsview .= '          }, function(error){'."\r\n";
+        $jsview .= '              $scope.error = error.statusText;'."\r\n";
+        $jsview .= '          });'."\r\n";
+        $jsview .= '        }'."\r\n";
         $jsview .= '    };'."\r\n\r\n";
         return $jsview;
     }
 
-    private static function get_js_update_method($tbs)
-    {
-        $tb = Inflect::singularize($tbs);
-        $upstr = '    $scope.do_'.$tb.'_update = function(id){'."\r\n";
-        $upstr .= '        $http({'."\r\n";
-        $upstr .= '            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
-        $upstr .= '            method: "PUT",'."\r\n";
-        $upstr .= '            data:this.'.$tb.','."\r\n";
-        $upstr .= '            headers:headers'."\n";
-        $upstr .= '        }).then((result) =>{'."\r\n";
-        $upstr .= '            $scope.'.$tb.' = result.data.message;'."\r\n";
-        $upstr .= '        }, function(error){'."\r\n";
-        $upstr .= '            $scope.berror = error.statusText;'."\r\n";
-        $upstr .= '        });'."\r\n".'    }'."\r\n\r\n";
-
-        return $upstr;
-    }
 
     private static function get_js_upload_method($tbs){
         $tb = Inflect::singularize($tbs);
@@ -310,6 +314,7 @@ class AngularApp
         }
     }
 
+
     private static function do_sign_out_file() {
         global $app_dir, $dbname;
         $jstr = 'app.controller (' . "'user_logoutCtrl'" . ', function($scope, $http) {' . "\r\n\r\n";
@@ -317,7 +322,7 @@ class AngularApp
         $jstr .= '    let headers = {' . "\n";
         $jstr .= '        "Content-Type":"application/json",' . "\n";
         $jstr .= '        "Accept":"application/json",' . "\n";
-        $jstr .= '        "Authorization":"Bearer"+user_token'."\r\n";
+        $jstr .= '        "Authorization":"Bearer "+user_token'."\r\n";
         $jstr .= '    };' . "\n\n";
         $jstr .= '    $scope.logout = function() {' . "\r\n";
         $jstr .= '        $http({' . "\r\n";
@@ -355,6 +360,7 @@ class AngularApp
         $jstr .= '    this.' . $tbj . ' = { ';
         $jstr .= self::get_tab_string($tb);
         $jstr .= '};' . "\r\n\n\n";
+        $jstr .= '     $scope.editing = ($routeParams.id == "undefined") ? false : true;'."\r\n";
         $jstr .= '     $scope.addnew = "#!/' . $tbj . '";' . "\n";
         $jstr .= '     $scope.search = "";' . "\n";
         $jstr .= '     $scope.upload = "#!/' . $tbj . '_upload";' . "\n";
@@ -380,7 +386,6 @@ class AngularApp
         $jstr .='     }'."\r\n\n";
         $jstr .= self::get_js_save_method($tb); //create and update method
         $jstr .= self::get_js_view_method($tb); //retrieve method
-        $jstr .= self::get_js_update_method($tb); //update method trigger
         $jstr .= self::get_js_upload_method($tb); //uupload files method trigger
         $jstr .= self::get_js_delete_method($tb); //delete method
         $jstr .= self::get_js_main_view($tb); //main model view

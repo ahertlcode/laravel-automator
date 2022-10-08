@@ -750,8 +750,10 @@ class Bulma {
         global $app_dir;
         $filename = Inflect::singularize($table);
         $addDatePicker = false;
-        $form_str = '      <form class="form container" method="POST" enctype="multipart/form-data" ng-controller="'.$table.'Ctrl">'."\n";
-        $form_str .= '          <h1 class="title is-3">ADD '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
+        $form_str = '   <div  ng-controller="'.$table.'Ctrl"  ng-init="'.$filename.'_view_single()">'."\r\n";
+        $form_str .= '      <form class="form container" method="POST" enctype="multipart/form-data">'."\n";
+        $form_str .= '          <h1 ng-if="editing == false" class="title is-3">ADD '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
+        $form_str .= '          <h1 ng-if="editing == true" class="title is-3">EDIT '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
         foreach($fields as $field){
             $req = false;
             if (strpos($field['Field'], 'date') > -1) $addDatePicker = true;
@@ -769,7 +771,7 @@ class Bulma {
         }
         $form_str .= self::getButtonGrp($table);
         $form_str .= "      </form>"."\n";
-
+        $form_str .= '   </div>'."\r\n";
         if ($addDatePicker == true) {
             $form_str .= "    <script>\r\n";
             $form_str .= "      $( function() {\n\r";
