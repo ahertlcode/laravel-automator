@@ -73,7 +73,7 @@ class AngularApp
     private static function get_js_save_method($tbs){
         $tb = Inflect::singularize($tbs);
         $jsave = '    $scope.'.$tb.'_save = function() {'."\r\n";
-        $jsave .= '      if ($scope.editing == false) {'."\r\n";
+        $jsave .= '      if ($scope.editing == 0) {'."\r\n";
         $jsave .= '        $http({'."\r\n";
         $jsave .= '            url: base_api_url+"/'.$tbs.'",'."\r\n";
         $jsave .= '            method: "POST",'."\r\n";
@@ -91,13 +91,14 @@ class AngularApp
         $jsave .= '            $scope.error = error.statusText;'."\r\n";
         $jsave .= '        });'."\r\n";
         $jsave .= '       } else {'."\r\n";
+        $jsave .= '         const id = $routeParams.id;'."\r\n";
         $jsave .= '         $http({'."\r\n";
         $jsave .= '            url: base_api_url+"/'.$tbs.'/"+id,'."\r\n";
         $jsave .= '            method: "PUT",'."\r\n";
         $jsave .= '            data:this.'.$tb.','."\r\n";
         $jsave .= '            headers:headers'."\n";
         $jsave .= '         }).then((result) =>{'."\r\n";
-        $jsave .= '            $scope.'.$tb.' = result.data.message;'."\r\n";
+        $jsave .= '            $scope.info = result.data.message;'."\r\n";
         $jsave .= '            setTimeout(() => {'."\r\n";
         $jsave .= '                setTimeout(() => { ;'."\r\n";
         $jsave .= '                  window.location.assign("#!/'.$tbs.'");'."\r\n";
@@ -322,7 +323,7 @@ class AngularApp
         $jstr .= '    let headers = {' . "\n";
         $jstr .= '        "Content-Type":"application/json",' . "\n";
         $jstr .= '        "Accept":"application/json",' . "\n";
-        $jstr .= '        "Authorization":"Bearer "+user_token'."\r\n";
+        $jstr .= '        "Authorization":"Bearer'.' "+user_token'."\r\n";
         $jstr .= '    };' . "\n\n";
         $jstr .= '    $scope.logout = function() {' . "\r\n";
         $jstr .= '        $http({' . "\r\n";
@@ -360,7 +361,7 @@ class AngularApp
         $jstr .= '    this.' . $tbj . ' = { ';
         $jstr .= self::get_tab_string($tb);
         $jstr .= '};' . "\r\n\n\n";
-        $jstr .= '     $scope.editing = ($routeParams.id == "undefined") ? false : true;'."\r\n";
+        $jstr .= '     $scope.editing = ($routeParams.id == undefined) ? 0 : 1;'."\r\n";
         $jstr .= '     $scope.addnew = "#!/' . $tbj . '";' . "\n";
         $jstr .= '     $scope.search = "";' . "\n";
         $jstr .= '     $scope.upload = "#!/' . $tbj . '_upload";' . "\n";
@@ -373,7 +374,7 @@ class AngularApp
         $jstr .= '     let headers = {' . "\r\n";
         $jstr .= '       "Content-Type":"application/json",' . "\r\n";
         $jstr .= '       "Accept":"application/json",' . "\r\n";
-        $jstr .= '       "Authorization":"Bearer"+user_token' . "\r\n";
+        $jstr .= '       "Authorization":"Bearer "+user_token' . "\r\n";
         $jstr .= '     }'."\r\n\n";
         $jstr .='     $scope.exportCSV = () => {'."\r\n";
         $jstr .='         const EXCEL_EXTENSION = ".xlsx";'."\r\n";

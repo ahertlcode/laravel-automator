@@ -97,8 +97,8 @@ class Bulma {
     private static function do_html_table_two_column($table, $fields){
         global $app_dir;
         $tb = Inflect::singularize($table);
-        $tblStr = '<div ng-controller="'.$table.'Ctrl" ng-click='.$tb.'"_view_single();">'."\r\n";
-        $tblStr = '  <table class="table is-hoverable is-striped is-fullwidth is-narrow">'."\r\n";
+        $tblStr = '<div ng-controller="'.$table.'Ctrl" ng-init="'.$tb.'_view_single();">'."\r\n";
+        $tblStr .= '  <table class="table is-hoverable is-striped is-fullwidth is-narrow">'."\r\n";
         $tblStr .= '    <tbody>'."\r\n";
         foreach($fields as $field) {
             $tblStr .= '        <tr>'."\r\n";
@@ -752,8 +752,8 @@ class Bulma {
         $addDatePicker = false;
         $form_str = '   <div  ng-controller="'.$table.'Ctrl"  ng-init="'.$filename.'_view_single()">'."\r\n";
         $form_str .= '      <form class="form container" method="POST" enctype="multipart/form-data">'."\n";
-        $form_str .= '          <h1 ng-if="editing == false" class="title is-3">ADD '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
-        $form_str .= '          <h1 ng-if="editing == true" class="title is-3">EDIT '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
+        $form_str .= '          <h1 ng-if="editing == 0" class="title is-3">ADD '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
+        $form_str .= '          <h1 ng-if="editing == 1" class="title is-3">EDIT '.strtoupper(str_replace("_"," ",Inflect::singularize($table))).'</h1>'."\n";
         foreach($fields as $field){
             $req = false;
             if (strpos($field['Field'], 'date') > -1) $addDatePicker = true;
